@@ -1,0 +1,6 @@
+{
+  "name": "CleanCity",
+  "description": "Comprehensive municipal door-to-door waste collection, segregation, fee payment, complaints, and monitoring system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
