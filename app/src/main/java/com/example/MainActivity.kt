@@ -6,8 +6,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.SystemBarStyle
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -68,31 +66,42 @@ fun CleanCityApp(viewModel: CleanCityViewModel = viewModel()) {
     BackHandler(loggedIn && role != UserRole.CITIZEN) { viewModel.setRole(UserRole.CITIZEN) }
     CompositionLocalProvider(LocalAppStrings provides getAppStrings(language)) {
         Scaffold(containerColor = CityColors.canvas, contentWindowInsets = WindowInsets.safeDrawing,
-            snackbarHost = { SnackbarHost(snackbar) }) { padding ->
+            snackbarHost = { SnackbarHost(snackbar) { data ->
+                Snackbar {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SuccessMark(color = LocalContentColor.current)
+                        Text(data.visuals.message)
+                    }
+                }
+            } }) { padding ->
             Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding(), contentAlignment = Alignment.TopCenter) {
                 Column(Modifier.widthIn(max = 1120.dp).fillMaxSize()) {
-                    if (!ready) {
-                        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(20.dp)) {
-                                if (operation.error == null) CircularProgressIndicator()
-                                else { Text(operation.error!!); CityButton(cityText("retry"), { viewModel.initialize() }) }
-                            }
-                        }
-                    } else if (!loggedIn) LoginScreen(viewModel)
-                    else {
-                        RoleHeaderBar(role, language, viewModel::setRole, viewModel::setLanguage,
-                            residentName = household?.residentName, onLogout = viewModel::logout, wardName = household?.ward,
-                            appearance = appearance, onAppearance = viewModel::setAppearance,
-                            households = homes, onHouseholdSelected = viewModel::selectHousehold)
-                        HorizontalDivider(color = CityColors.line)
-                        Crossfade(role, Modifier.weight(1f), tween(220), label = "Role") { active ->
-                            stateHolder.SaveableStateProvider(if (active == UserRole.CITIZEN) active.name + household?.id else active.name) {
-                                when (active) {
-                                    UserRole.CITIZEN -> CitizenScreen(viewModel, household, notices, citizenReports, payments)
-                                    UserRole.COLLECTOR -> CollectorScreen(viewModel, homes, pickups)
-                                    UserRole.DRIVER -> DriverScreen(viewModel, weights)
-                                    UserRole.SUPERVISOR -> SupervisorScreen(viewModel, reports, crew)
-                                    UserRole.MUNICIPAL_ADMIN -> AdminScreen(viewModel, homes, fines)
+                    CityTransition(if (!ready) 0 else if (!loggedIn) 1 else 2, Modifier.fillMaxSize()) { stage ->
+                        Column(Modifier.fillMaxSize()) {
+                            if (stage == 0) {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Column(Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                                        if (operation.error == null) CircularProgressIndicator()
+                                        else { Text(operation.error!!); CityButton(cityText("retry"), { viewModel.initialize() }) }
+                                    }
+                                }
+                            } else if (stage == 1) LoginScreen(viewModel)
+                            else {
+                                RoleHeaderBar(role, language, viewModel::setRole, viewModel::setLanguage,
+                                    residentName = household?.residentName, onLogout = viewModel::logout, wardName = household?.ward,
+                                    appearance = appearance, onAppearance = viewModel::setAppearance,
+                                    households = homes, onHouseholdSelected = viewModel::selectHousehold)
+                                HorizontalDivider(color = CityColors.line)
+                                CityTransition(role, Modifier.weight(1f)) { active ->
+                                    stateHolder.SaveableStateProvider(if (active == UserRole.CITIZEN) active.name + household?.id else active.name) {
+                                        when (active) {
+                                            UserRole.CITIZEN -> CitizenScreen(viewModel, household, notices, citizenReports, payments)
+                                            UserRole.COLLECTOR -> CollectorScreen(viewModel, homes, pickups)
+                                            UserRole.DRIVER -> DriverScreen(viewModel, weights)
+                                            UserRole.SUPERVISOR -> SupervisorScreen(viewModel, reports, crew)
+                                            UserRole.MUNICIPAL_ADMIN -> AdminScreen(viewModel, homes, fines)
+                                        }
+                                    }
                                 }
                             }
                         }

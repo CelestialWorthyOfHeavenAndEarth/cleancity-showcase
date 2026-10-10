@@ -2,10 +2,20 @@ package com.example.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
+import androidx.compose.ui.draw.rotate
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import java.util.Calendar
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
@@ -43,7 +53,7 @@ fun CitizenScreen(viewModel: CityModel, household: HouseholdEntity?, announcemen
     val icons = listOf(Icons.Default.Home, Icons.Default.AddAPhoto, Icons.Default.Recycling, Icons.Default.AutoAwesome, Icons.AutoMirrored.Filled.ReceiptLong)
     val keyboard = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     Column(modifier.fillMaxSize()) {
-        Crossfade(tab, Modifier.weight(1f), tween(220), label = "Citizen destination") { index ->
+        CityTransition(tab, Modifier.weight(1f), direction = { from, to -> to.compareTo(from) }) { index ->
             stateHolder.SaveableStateProvider(index) {
                 when (index) {
                     0 -> DailyPickupTab(household, announcements, { showTag = true }, { tab = 1 }, { tab = 4 }, pickups)
@@ -56,7 +66,9 @@ fun CitizenScreen(viewModel: CityModel, household: HouseholdEntity?, announcemen
         }
         if (!keyboard) {
             HorizontalDivider(color = CityColors.line)
-            NavigationBar(containerColor = CityColors.surface, tonalElevation = 0.dp, windowInsets = WindowInsets(0,0,0,0)) {
+            if (LocalDensity.current.fontScale > 1.3f) {
+                WorkspaceTabs(labels, icons, tab, { tab = it }, "citizen_tab")
+            } else NavigationBar(containerColor = CityColors.surface, tonalElevation = 0.dp, windowInsets = WindowInsets(0,0,0,0)) {
                 labels.forEachIndexed { i, label ->
                     NavigationBarItem(tab == i, { tab = i }, { Icon(icons[i], null) },
                         label = { Text(label, style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
@@ -82,60 +94,136 @@ fun DailyPickupTab(household: HouseholdEntity?, announcements: List<Announcement
     val today = DemoScenario.today(pickups).firstOrNull()
     var allPickups by rememberSaveable { mutableStateOf(false) }
     var allAnnouncements by rememberSaveable { mutableStateOf(false) }
-    CityPage(cityText("homeTitle"), household?.residentName.orEmpty() + " · " + cityText("today")) {
-        item {
-            AdaptiveColumns(primary = {
-                Surface(color = CityColors.forest, shape = RoundedCornerShape(28.dp)) {
-                    Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(if (today == null) cityText("sampleSchedule") else cityText("today"), style = MaterialTheme.typography.labelLarge, color = CityColors.onForest)
-                        Text(if (today == null) "7:00 – 9:30 AM" else when(today.status) { "COLLECTED" -> s.truckCollected; else -> cityText("exceptions") },
-                            style = MaterialTheme.typography.displayLarge, color = CityColors.onForest)
-                        Text(if (today == null) s.wetWaste + " · " + s.dryWaste else DemoScenario.timestamp(today.timestamp),
-                            style = MaterialTheme.typography.bodyMedium, color = CityColors.onForest)
-                        NeighborhoodArt(Modifier.height(128.dp))
-                        Button(onOpenQrTag, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = household != null,
-                            colors = ButtonDefaults.buttonColors(containerColor = CityColors.onForest, contentColor = CityColors.forest), shape = RoundedCornerShape(14.dp)) {
-                            Icon(Icons.Default.QrCode2, null); Spacer(Modifier.width(8.dp)); Text(s.householdQrCode)
+    val greeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
+        in 5..11 -> "morning"; in 12..16 -> "afternoon"; else -> "evening"
+    }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val wide = maxWidth >= 600.dp
+        val largeText = LocalDensity.current.fontScale > 1.3f
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 16.dp, 20.dp, 32.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)) {
+            item {
+                Arrival {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Text(cityText(greeting), style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
+                        Text(household?.residentName.orEmpty(), style = MaterialTheme.typography.displayMedium, color = CityColors.ink)
+                        Text(cityText("today") + " · " + household?.ward.orEmpty().substringBefore(" -"),
+                            style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
+                    }
+                }
+            }
+            item {
+                Arrival(1) {
+                    if (wide) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Box(Modifier.weight(1.3f)) { HomePickupStatus(today) }
+                            Box(Modifier.weight(1f)) { HomeImpact(household) }
+                        }
+                    } else HomePickupStatus(today)
+                }
+            }
+            item {
+                Arrival(2) {
+                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                            if (onReportWaste != null) HomeAction(s.tabReportWaste, Icons.Default.AddAPhoto, onReportWaste, Modifier.weight(1f).fillMaxHeight())
+                            if (onViewBills != null) HomeAction(s.tabBillsUpi, Icons.AutoMirrored.Filled.ReceiptLong, onViewBills, Modifier.weight(1f).fillMaxHeight())
+                            if (!largeText || wide) HomeAction(cityText("qrShortcut"), Icons.Default.QrCode2, onOpenQrTag, Modifier.weight(1f).fillMaxHeight(), enabled = household != null)
+                        }
+                        if (largeText && !wide) CityOutlineButton(onOpenQrTag, Modifier.fillMaxWidth(), enabled = household != null) {
+                            Icon(Icons.Default.QrCode2, null)
+                            Spacer(Modifier.width(10.dp))
+                            Text(cityText("qrShortcut"))
                         }
                     }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (onReportWaste != null) OutlinedButton(onReportWaste, Modifier.weight(1f).heightIn(min = 52.dp)) {
-                        Icon(Icons.Default.AddAPhoto, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(s.tabReportWaste)
-                    }
-                    if (onViewBills != null) OutlinedButton(onViewBills, Modifier.weight(1f).heightIn(min = 52.dp)) { Text(s.tabBillsUpi) }
-                }
-            }, secondary = {
-                CityPanel {
-                    Text(household?.address.orEmpty(), style = MaterialTheme.typography.titleMedium)
-                    Text(household?.ward.orEmpty(), style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
-                    Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                        Metric((household?.segregationScore ?: 0).toString() + "%", s.segregationScore, Modifier.weight(1f), Icons.Default.Eco)
-                        Metric((household?.streakDays ?: 0).toString(), s.streakDays, Modifier.weight(1f), Icons.Default.LocalFireDepartment)
-                    }
-                }
-            })
-        }
-        if (pickups.isNotEmpty()) {
-            item { CollectionWeek(pickups) }
-            item { SectionTitle(s.collectionHistory, if (allPickups) s.close else s.filterAll, { allPickups = !allPickups }) }
-            items(if (allPickups) pickups else pickups.take(3), key = { "pickup-" + it.id }) { log ->
-                CityRecord(if (log.status == "COLLECTED") cityText("collected") else cityText("exceptions"),
-                    DemoScenario.timestamp(log.timestamp) + " · " + log.collectorName, Icons.Default.Recycling)
             }
-        }
-        item { SectionTitle(s.announcementsTitle, if (announcements.size > 2) s.filterAll else null, { allAnnouncements = !allAnnouncements }) }
-        if (announcements.isEmpty()) item { EmptyState(cityText("noRecords")) }
-        items(if (allAnnouncements) announcements else announcements.take(2), key = { "notice-" + it.id }) { notice ->
-            CityPanel {
-                StatusBadge(notice.category, if (notice.isUrgent) "warning" else "positive")
-                Text(notice.title, style = MaterialTheme.typography.titleMedium)
-                Text(notice.content, style = MaterialTheme.typography.bodyMedium, color = CityColors.muted)
-                Text(notice.date, style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
+            if (!wide) item {
+                Arrival(3) {
+                    HomeImpact(household)
+                }
+            }
+            if (pickups.isNotEmpty()) {
+                item { CollectionWeek(pickups) }
+                item { SectionTitle(s.collectionHistory, if (allPickups) s.close else s.filterAll, { allPickups = !allPickups }) }
+                items(if (allPickups) pickups else pickups.take(3), key = { "pickup-" + it.id }) { log ->
+                    CityRecord(if (log.status == "COLLECTED") cityText("collected") else cityText("exceptions"),
+                        DemoScenario.timestamp(log.timestamp) + " · " + log.collectorName, Icons.Default.Recycling)
+                }
+            }
+            item { SectionTitle(s.announcementsTitle, if (announcements.size > 2) s.filterAll else null, { allAnnouncements = !allAnnouncements }) }
+            if (announcements.isEmpty()) item { EmptyState(cityText("noRecords")) }
+            items(if (allAnnouncements) announcements else announcements.take(2), key = { "notice-" + it.id }) { notice ->
+                CityPanel {
+                    StatusBadge(notice.category, if (notice.isUrgent) "warning" else "positive")
+                    Text(notice.title, style = MaterialTheme.typography.titleMedium)
+                    Text(notice.content, style = MaterialTheme.typography.bodyMedium, color = CityColors.muted)
+                    Text(notice.date, style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
+                }
             }
         }
     }
 }
+
+@Composable
+private fun HomePickupStatus(today: PickupLogEntity?) {
+    val s = appStrings()
+    Surface(color = CityColors.forest, shape = RoundedCornerShape(28.dp)) {
+        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(cityText("todayPickup"), style = MaterialTheme.typography.labelLarge, color = CityColors.onForest)
+            CityTransition(today?.status ?: "SCHEDULED") { status ->
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    if (status == "COLLECTED") SuccessMark(color = CityColors.onForest)
+                    Text(if (status == "SCHEDULED") "7:00 – 9:30 AM" else if (status == "COLLECTED") s.truckCollected else cityText("exceptions"),
+                        style = MaterialTheme.typography.displayMedium, color = CityColors.onForest)
+                }
+            }
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(if (today == null) cityText("scheduled") else DemoScenario.timestamp(today.timestamp),
+                        style = MaterialTheme.typography.bodySmall, color = CityColors.onForest)
+                    Text(s.wetWaste + " · " + s.dryWaste, style = MaterialTheme.typography.bodySmall, color = CityColors.onForest)
+                }
+                NeighborhoodArt(Modifier.width(108.dp).height(64.dp), animateArrival = true)
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeImpact(household: HouseholdEntity?) {
+    val s = appStrings()
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        SectionTitle(cityText("yourImpact"))
+        CityPanel {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    MotionNumber(household?.segregationScore ?: 0, "%")
+                    Text(s.segregationScore, style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
+                }
+                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    MotionNumber(household?.streakDays ?: 0)
+                    Text(s.streakDays, style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeAction(label: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier, enabled: Boolean = true) {
+    val interactions = remember { MutableInteractionSource() }
+    Surface(onClick, modifier.heightIn(min = 88.dp).cityPress(interactions).semantics { role = Role.Button },
+        enabled = enabled, interactionSource = interactions, color = CityColors.surface, shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, CityColors.line)) {
+        Column(Modifier.padding(horizontal = 8.dp, vertical = 14.dp), horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Icon(icon, null, Modifier.size(24.dp), CityColors.primary)
+            Text(label, style = MaterialTheme.typography.labelMedium, color = CityColors.primary, textAlign = TextAlign.Center)
+        }
+    }
+}
+
 @Composable
 fun SegregationGuideTab(household: HouseholdEntity?) {
     val s = appStrings()
@@ -153,7 +241,9 @@ fun SegregationGuideTab(household: HouseholdEntity?) {
                             Text("0" + (i + 1), style = MaterialTheme.typography.labelLarge, color = colors[i])
                             Text(titles[i], style = MaterialTheme.typography.titleLarge)
                         }
-                        Icon(if (expanded == i) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null)
+                        val angle by animateFloatAsState(if (expanded == i) 180f else 0f,
+                            if (LocalCityMotion.current) spring(1f, 600f) else snap(), label = "Expand arrow")
+                        Icon(Icons.Default.ExpandMore, null, Modifier.rotate(angle))
                     }
                     AnimatedVisibility(expanded == i) { Text(details[i], style = MaterialTheme.typography.bodyLarge, color = CityColors.muted) }
                 }

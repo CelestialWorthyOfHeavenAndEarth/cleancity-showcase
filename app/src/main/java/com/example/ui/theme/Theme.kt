@@ -50,7 +50,9 @@ private val Dark = darkColorScheme(
 fun CleanCityTheme(darkTheme: Boolean = isSystemInDarkTheme(), dynamicColor: Boolean = false, content: @Composable () -> Unit) {
     MaterialTheme(colorScheme = if (darkTheme) Dark else Light, typography = Typography,
         shapes = Shapes(RoundedCornerShape(8.dp), RoundedCornerShape(12.dp), RoundedCornerShape(20.dp),
-            RoundedCornerShape(28.dp), RoundedCornerShape(32.dp)), content = content)
+            RoundedCornerShape(28.dp), RoundedCornerShape(32.dp)), content = {
+            com.example.ui.components.CityMotionProvider(content)
+        })
 }
 object CitySpacing {
     val screen = 20.dp

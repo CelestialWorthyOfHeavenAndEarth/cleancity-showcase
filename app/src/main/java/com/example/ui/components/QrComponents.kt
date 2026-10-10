@@ -54,10 +54,11 @@ fun HouseholdScannerSheet(households: List<HouseholdEntity>, onFound: (Household
     var error by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     val prompt = cityText("scanHint")
+    val feedback = LocalCityFeedback.current
     fun accept(raw: String?) {
         val normalized = raw?.let(HouseholdQr::normalize)
         val home = households.firstOrNull { it.qrCode.equals(normalized, ignoreCase = true) }
-        if (home == null) error = true else { error = false; onFound(home) }
+        if (home == null) error = true else { error = false; feedback(CityFeedback.CONFIRM); onFound(home) }
     }
     val camera = rememberLauncherForActivityResult(ScanContract()) { result ->
         if (result.contents != null) accept(result.contents)
@@ -81,7 +82,7 @@ fun HouseholdScannerSheet(households: List<HouseholdEntity>, onFound: (Household
             runCatching { camera.launch(ScanOptions().setDesiredBarcodeFormats(ScanOptions.QR_CODE)
                 .setPrompt(prompt).setBeepEnabled(false).setOrientationLocked(false)) }.onFailure { error = true }
         }, enabled = !busy, icon = Icons.Default.CameraAlt)
-        OutlinedButton({ gallery.launch("image/*") }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !busy) {
+        CityOutlineButton({ gallery.launch("image/*") }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !busy) {
             Icon(Icons.Default.PhotoLibrary, null); Spacer(Modifier.width(8.dp)); Text(cityText("readQrImage"))
         }
         HorizontalDivider(color = CityColors.line)

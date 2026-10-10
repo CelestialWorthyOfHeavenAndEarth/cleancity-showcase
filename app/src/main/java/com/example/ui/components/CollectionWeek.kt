@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.example.data.*
 import com.example.ui.theme.CityColors
 import com.example.util.*
-import java.text.SimpleDateFormat
+import android.icu.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable

@@ -30,49 +30,54 @@ fun SupervisorScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, cr
     val op by viewModel.operation.collectAsStateWithLifecycle()
     val notices by viewModel.demoNotices.collectAsStateWithLifecycle()
     BackHandler(tab != 0) { tab = 0 }
-    Column(modifier.fillMaxSize()) {
-        WorkspaceTabs(listOf(cityText("overview"), cityText("reports"), cityText("crew")), listOf(Icons.Default.Map, Icons.AutoMirrored.Filled.Assignment, Icons.Default.Groups), tab, { tab = it }, "supervisor_tab")
-        holder.SaveableStateProvider(tab) {
-            when(tab) {
-                0 -> CityPage(s.roleSupervisor, DemoScenario.ward) {
-                    item { AdaptiveColumns(primary = { RouteIllustration(crew.count { it.status == "ON_ROUTE" }, crew.size) }, secondary = {
-                        MetricPair(complaints.count { it.status != "RESOLVED" }.toString(), s.filterPending,
-                            crew.count { it.ppeChecked }.toString() + "/" + crew.size, cityText("safety"))
-                        CityButton(cityText("reports"), { tab = 1 }, icon = Icons.AutoMirrored.Filled.Assignment)
-                    }) }
-                    if ("sos" in notices) item { CityPanel(color = CityColors.warningBg) { Text(cityText("sos"), style = MaterialTheme.typography.titleMedium); Text(DemoScenario.vehicle); ContextNote(cityText("demoRecorded")) } }
-                    item { SectionTitle(cityText("crew")) }
-                    items(crew, key = { it.id }) { member -> PersonRecord(member.workerName, member.role + " · " + member.checkInTime) }
-                }
-                1 -> CityPage(cityText("reports"), cityText("sla") + " · 24 h") {
-                    item {
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("ALL", "OPEN", "IN_PROGRESS", "ESCALATED", "RESOLVED").forEach { status ->
-                                ChoiceChip(if (status == "ALL") s.filterAll else reportStatus(status), statusFilter == status, { statusFilter = status })
+    CityDetailHost(selectedId, { selectedId = null }, modifier, canClose = !op.busy, list = {
+        Column(Modifier.fillMaxSize()) {
+            WorkspaceTabs(listOf(cityText("overview"), cityText("reports"), cityText("crew")), listOf(Icons.Default.Map, Icons.AutoMirrored.Filled.Assignment, Icons.Default.Groups), tab, { tab = it }, "supervisor_tab")
+            CityTransition(tab, Modifier.weight(1f), direction = { from, to -> to.compareTo(from) }) { activeTab ->
+                holder.SaveableStateProvider(activeTab) {
+                    when(activeTab) {
+                        0 -> CityPage(s.roleSupervisor, DemoScenario.ward) {
+                            item { AdaptiveColumns(primary = { RouteIllustration(crew.count { it.status == "ON_ROUTE" }, crew.size) }, secondary = {
+                                MetricPair(complaints.count { it.status != "RESOLVED" }.toString(), s.filterPending,
+                                    crew.count { it.ppeChecked }.toString() + "/" + crew.size, cityText("safety"))
+                                CityButton(cityText("reports"), { tab = 1 }, icon = Icons.AutoMirrored.Filled.Assignment)
+                            }) }
+                            if ("sos" in notices) item { CityPanel(color = CityColors.warningBg) { Text(cityText("sos"), style = MaterialTheme.typography.titleMedium); Text(DemoScenario.vehicle); ContextNote(cityText("demoRecorded")) } }
+                            item { SectionTitle(cityText("crew")) }
+                            items(crew, key = { it.id }) { member -> PersonRecord(member.workerName, member.role + " · " + member.checkInTime) }
+                        }
+                        1 -> CityPage(cityText("reports"), cityText("sla") + " · 24 h") {
+                            item {
+                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    listOf("ALL", "OPEN", "IN_PROGRESS", "ESCALATED", "RESOLVED").forEach { status ->
+                                        ChoiceChip(if (status == "ALL") s.filterAll else reportStatus(status), statusFilter == status, { statusFilter = status })
+                                    }
+                                }
+                            }
+                            if (complaints.isEmpty()) item { EmptyState(s.noReports) }
+                            items(complaints.filter { statusFilter == "ALL" || it.status == statusFilter }.sortedWith(compareBy<ComplaintEntity> { it.status == "RESOLVED" }.thenBy { it.slaDeadlineMillis }), key = { it.id }) { report ->
+                                WasteReportCard(report, { viewModel.clearOperation(); selectedId = report.id }, Modifier.animateItem())
                             }
                         }
-                    }
-                    if (complaints.isEmpty()) item { EmptyState(s.noReports) }
-                    items(complaints.filter { statusFilter == "ALL" || it.status == statusFilter }.sortedWith(compareBy<ComplaintEntity> { it.status == "RESOLVED" }.thenBy { it.slaDeadlineMillis }), key = { it.id }) { report ->
-                        WasteReportCard(report) { viewModel.clearOperation(); selectedId = report.id }
-                    }
-                }
-                else -> CityPage(cityText("crew"), DemoScenario.date()) {
-                    item { OperationFeedback(viewModel, "ppe") }
-                    if (crew.isEmpty()) item { EmptyState(cityText("noRecords")) }
-                    items(crew, key = { it.id }) { member ->
-                        Column {
-                            PersonRecord(member.workerName, member.role + " · " + member.checkInTime)
-                            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                Text(cityText("safety"), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-                                Switch(member.ppeChecked, { viewModel.toggleCrewPpe(member) }, enabled = !op.busy)
+                        else -> CityPage(cityText("crew"), DemoScenario.date()) {
+                            item { OperationFeedback(viewModel, "ppe") }
+                            if (crew.isEmpty()) item { EmptyState(cityText("noRecords")) }
+                            items(crew, key = { it.id }) { member ->
+                                Column {
+                                    PersonRecord(member.workerName, member.role + " · " + member.checkInTime)
+                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                                        Text(cityText("safety"), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
+                                        Switch(member.ppeChecked, { viewModel.toggleCrewPpe(member) }, enabled = !op.busy)
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
-    }
-    complaints.firstOrNull { it.id == selectedId }?.let { ReportDetailSheet(it, { selectedId = null }, viewModel) }
+    }, detail = { id ->
+        complaints.firstOrNull { it.id == id }?.let { ReportDetailScreen(it, { selectedId = null }, viewModel) }
+    })
 }
 

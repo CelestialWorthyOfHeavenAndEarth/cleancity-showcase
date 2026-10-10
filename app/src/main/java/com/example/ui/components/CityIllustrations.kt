@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -20,7 +21,9 @@ import com.example.ui.theme.CityColors
 import com.example.util.cityText
 
 @Composable
-fun NeighborhoodArt(modifier: Modifier = Modifier) {
+fun NeighborhoodArt(modifier: Modifier = Modifier, animateArrival: Boolean = false) {
+    val arrival by arrivalProgress(1)
+    val progress = if (animateArrival) arrival else 1f
     Canvas(modifier.fillMaxWidth().aspectRatio(2f)) {
         val k = minOf(size.width / 360f, size.height / 180f)
         withTransform({ translate((size.width - 360f * k) / 2, (size.height - 180f * k) / 2); scale(k, k, Offset.Zero) }) {
@@ -30,16 +33,19 @@ fun NeighborhoodArt(modifier: Modifier = Modifier) {
             drawLine(Color(0xFF88B99C), Offset(0f, 157f), Offset(360f, 157f), 2f)
             // A row of distinct buildings forms the CleanCity visual signature.
             listOf(Triple(34f, 54f, 52f), Triple(98f, 34f, 62f), Triple(174f, 70f, 49f)).forEachIndexed { i, (x, y, w) ->
+                withTransform({ translate(0f, (1f - progress) * (12f + i * 6)) }) {
                 drawRoundRect(if (i == 1) white else mint, Offset(x, y), Size(w, 116f - y), CornerRadius(4f))
                 for (row in 0..1) for (col in 0..1) drawRoundRect(dark, Offset(x + 10 + col * 22, y + 12 + row * 24), Size(12f, 14f), CornerRadius(2f))
                 drawRect(dark, Offset(x + w / 2 - 6, 97f), Size(12f, 19f))
+                }
             }
             listOf(18f, 247f, 330f).forEach { x ->
                 drawLine(white, Offset(x, 118f), Offset(x, 70f), 3f)
                 drawOval(mint, Offset(x - 16, 52f), Size(32f, 42f))
                 drawLine(dark, Offset(x, 98f), Offset(x, 66f), 2f)
             }
-            // Friendly collection truck, drawn locally so it works without a network.
+            // The truck arrives once, then rests. It does not imply live GPS tracking.
+            withTransform({ translate((1f - progress) * -150f, 0f) }) {
             drawRoundRect(Color(0xFFD8EBDF), Offset(126f, 108f), Size(77f, 35f), CornerRadius(5f))
             drawRoundRect(white, Offset(203f, 118f), Size(28f, 25f), CornerRadius(4f))
             drawRoundRect(dark, Offset(207f, 122f), Size(16f, 10f), CornerRadius(2f))
@@ -48,6 +54,7 @@ fun NeighborhoodArt(modifier: Modifier = Modifier) {
             }
             drawLine(dark, Offset(143f, 120f), Offset(184f, 120f), 3f, StrokeCap.Round)
             drawLine(dark, Offset(143f, 129f), Offset(170f, 129f), 3f, StrokeCap.Round)
+            }
         }
     }
 }

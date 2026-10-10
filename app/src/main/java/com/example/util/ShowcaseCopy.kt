@@ -97,7 +97,7 @@ locationError|Location unavailable. Enter an address or use the sample.|లొ�
 private val codes = listOf("EN", "TE", "HI", "KN", "TA", "ML", "MR", "BN", "GU")
 fun showcaseText(language: String, key: String): String {
     val index = codes.indexOf(getAppStrings(language).languageCode).coerceAtLeast(0)
-    val row = requireNotNull(productRows[key] ?: showcaseRows[key]) { "Missing copy: " + key }
+    val row = requireNotNull(motionRows[key] ?: productRows[key] ?: showcaseRows[key]) { "Missing copy: " + key }
     return row.getOrElse(index) { row.first() }
 }
 @Composable

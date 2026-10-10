@@ -92,7 +92,7 @@ fun RoleHeaderBar(currentRole: UserRole, selectedLanguage: String, onRoleSelecte
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DemoScenario.languages.forEach { lang -> ChoiceChip(com.example.util.getAppStrings(lang).languageName, selectedLanguage == lang, { onLanguageSelected(lang) }) }
         }
-        if (onLogout != null) OutlinedButton(onClick = { accountOpen = false; onLogout() }, Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("btn_logout")) { Text(s.logout) }
+        if (onLogout != null) CityOutlineButton(onClick = { accountOpen = false; onLogout() }, Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("btn_logout")) { Text(s.logout) }
     }
     if (homesOpen) CitySheet(cityText("switchHome"), { homesOpen = false }) {
         CityField(query, { query = it }, cityText("searchHomes"))

@@ -1,16 +1,26 @@
-# CleanCity — TFI dataset and QR update
+# CleanCity — Motion, Home, TFI dataset and QR update
 
-Updated 10 October 2026. This revision follows the request for memorable TFI names, substantially more data, real QR workflows and simpler product wording.
+Updated 10 October 2026. This revision adds the approved motion system and full-name Home greeting to the expanded TFI dataset, QR workflows and white/emerald identity.
 
 ## Interface changes
 
-The identity uses white and emerald green, sampled from the user's reference (`#166844`). The palette revision removes the former ivory canvas and pale lime accents from both themes, navigation, buttons, QR cards and illustrations. Green hero panels have white text and white QR buttons; Report and Bills use matching outlined controls. Material surface colors are explicitly set to avoid unrelated default tints. White text on the reference green has a 6.78:1 contrast ratio; body and supporting text on white exceed 4.5:1. The launcher and printable tag sheet use the same palette. Dark appearance uses corresponding green and neutral surfaces. The layout and all workflows are retained.
+The identity uses white and emerald green, sampled from the user's reference (`#166844`). The palette revision removes the former ivory canvas and pale lime accents from both themes, navigation, buttons, QR cards and illustrations. Green hero panels have white text; Report, Bills and Household QR use matching outlined shortcuts. Material surface colors are explicitly set to avoid unrelated default tints. White text on the reference green has a 6.78:1 contrast ratio; body and supporting text on white exceed 4.5:1. The launcher and printable tag sheet use the same palette. Dark appearance uses corresponding green and neutral surfaces. The revised welcome and Home compositions preserve the existing workflows.
 
 The normal phone header keeps brand, ward, role and preferences in one row; enlarged text moves the role control to another row. Household and crew lists use initial avatars and divided records. The illustrated citizen hero is shorter, bringing report and bill actions forward. Collection history includes a seven-day status strip.
 
 Repeated Demo, Simulate and Local showcase wording has been removed from product surfaces. Actions use plain names: Get started, Scan household QR, Record payment, Payment reminder and Report vehicle issue. The payment confirmation explains its actual ledger effect. Reminders can be copied; vehicle issues appear in the supervisor queue. Neither action claims external delivery.
 
 Preferences includes a searchable household chooser, so a presentation can move between Mahesh Babu, Prabhas, Allu Arjun, Jr NTR and the rest of the cast. Citizen navigation and drafts are saved separately for each household. Collector lists have name/address search and remaining/completed filters; supervisor reports have status filters; finance has separate dues and transaction views.
+
+## Motion and Home update
+
+Home displays **Mahesh Babu** in full. Its compact pickup panel, time-of-day greeting, Report/Bills/Household QR shortcuts and animated impact values make the first screen easier to scan. Wider screens pair pickup and impact; enlarged text places QR beneath the other shortcuts and uses scrolling navigation to avoid broken labels. The weekly strip uses localized narrow weekday labels.
+
+Welcome now has a stronger headline, a neighborhood illustration that moves once and settles, and a pinned Get started action. Saved entrance state prevents repeated introductions on returning to a destination.
+
+Shared controls have spring press feedback and button corner changes. Tabs use small directional transitions; role and entry changes fade through. Progress, totals, state labels and success checkmarks animate when their underlying state changes. Report and collection records expand into inline detail pages using shared bounds. Predictive Back reveals the list, restores a cancelled detail with its draft, and returns to the saved scroll position when completed. Forms and overlays keep the existing Back order.
+
+Android semantic haptics accompany deliberate selections, QR matches and successfully saved operations. Failure does not produce success feedback. System touch-feedback preferences and disabled animations are respected. All new copy is translated into the nine existing languages. [MOTION_DESIGN.md](MOTION_DESIGN.md) records the interaction rules and scope.
 
 ## Expanded connected dataset
 
@@ -50,7 +60,7 @@ The existing nine languages, light/dark/system preferences, transactional paymen
 
 ## Verification
 
-The debug APK builds successfully. All 32 local tests pass, covering household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, offline responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected.
+The debug APK builds successfully. All 36 local tests pass, covering household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, offline responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected. Four motion interaction tests verify the full-name Home and shortcuts, predictive Back cancellation/completion with preserved state, success-only haptic dispatch, and immediate rendering when system animations are disabled.
 
 The verification command uses the installed JDK 22 and Android SDK 36.1:
 
@@ -58,11 +68,13 @@ The verification command uses the installed JDK 22 and Android SDK 36.1:
 .\gradlew.bat --offline :app:testDebugUnitTest :app:assembleDebug --console=plain
 ```
 
-Thirty-six host-rendered Compose images cover light/dark phone screens, enlarged text, wide layouts, QR cards, supervisor reports/crew, and admin wards/finance/transactions. Representative renders were visually inspected, including the citizen home, QR card, collector, crew, report queue, finances and enlarged admin layout. They are rendered with Robolectric native graphics, not an installed APK or emulator. Scanner entry, invalid/valid household-ID lookup, the collection form and weight validation are checked through Compose interactions. Dialog-window appearance remains a device check because the host screenshot helper captures the activity view only.
+Thirty-nine host-rendered Compose images cover light/dark phone screens, enlarged text, wide layouts, QR cards, supervisor reports/crew, admin wards/finance/transactions, and the new report/collection detail pages. Representative renders were visually inspected, including welcome, Home in both themes, large-text Home, wide Home and both detail forms. Static screenshots use the reduced-motion path because a software bitmap canvas cannot draw shared-transition RenderNodes. Separate interaction tests exercise motion and Back behavior.
+
+These are Robolectric host renders, not screenshots from an installed APK or emulator. Scanner entry, invalid/valid household-ID lookup, the collection form and weight validation are checked through Compose interactions. Dialog-window appearance, physical haptic strength, gesture feel and animation frame pacing remain device checks.
 
 The existing tooling can emit a non-fatal KSP shutdown exception. Lint was previously blocked by uncached instrumentation-test dependencies and is separate from these build/unit/render checks.
 
-The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,315 bytes), copied from the final successful debug build. SHA-256: `9C7DB88A3E7EBE7AAC8BABFDD799875640F87E85AFCA29F5C030517D10E79CEE`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
+The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,315 bytes), copied from the final successful debug build. SHA-256: `57ED48092E0862BCA1942D09E035C2102FCD27FACA054F44509B2F1EE78AFBCC`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
 
 ## Simulator/device checklist
 
@@ -70,6 +82,7 @@ The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,315 bytes), 
 2. Import a tag PNG and verify that the matching household opens. Share a tag and confirm the receiving app can read it.
 3. Record a collection, report, inspection result and payment, then switch roles and households to verify the connected results.
 4. Test keyboard insets, Back behavior, rotation, large text, TalkBack, language changes and dark/system appearance.
-5. Upgrade an existing installation and confirm saved work remains intact.
+5. Open report and collection details, swipe Back partway and cancel, then complete Back. Verify drafts, scroll position, touch feedback and reduced-motion settings.
+6. Upgrade an existing installation and confirm saved work remains intact.
 
 No emulator or Google AI Studio environment was set up. Network authentication, payment processing, SMS transport and external incident dispatch remain outside this app's current on-device workflows. The optional Gemini network path is retained but was not verified.

@@ -1,6 +1,10 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -34,30 +38,47 @@ fun LoginScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
     var staff by rememberSaveable { mutableStateOf(UserRole.COLLECTOR) }
     var showLanguages by remember { mutableStateOf(false) }
     var submitted by rememberSaveable { mutableStateOf(false) }
-    CityPage("CleanCity", cityText("welcome"), modifier) {
-        item {
-            Surface(color = CityColors.forest, shape = RoundedCornerShape(28.dp)) {
-                Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(cityText("tagline"), style = MaterialTheme.typography.displayLarge, color = CityColors.onForest)
-                    NeighborhoodArt()
-                    Text(s.appSubtitle, style = MaterialTheme.typography.bodyMedium, color = CityColors.onForest)
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Column(Modifier.widthIn(max = 600.dp).fillMaxSize().padding(horizontal = 24.dp, vertical = 12.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Surface(color = CityColors.forest, shape = RoundedCornerShape(14.dp)) {
+                    Icon(Icons.Default.Eco, null, Modifier.padding(10.dp).size(24.dp), CityColors.onForest)
+                }
+                Spacer(Modifier.width(12.dp))
+                Text("CleanCity", Modifier.weight(1f), style = MaterialTheme.typography.titleLarge)
+                TextButton({ showLanguages = true }) {
+                    Icon(Icons.Default.Language, null, Modifier.size(18.dp)); Spacer(Modifier.width(6.dp))
+                    Text(getAppStrings(language).languageCode)
+                }
+            }
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(top = 28.dp, bottom = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                Arrival {
+                    Text(cityText("welcomeHeadline"), style = MaterialTheme.typography.displayLarge.copy(fontSize = 40.sp, lineHeight = 47.sp), color = CityColors.ink)
+                }
+                Arrival(1) { Text(cityText("welcomeBody"), color = CityColors.muted, style = MaterialTheme.typography.bodyLarge) }
+                Arrival(2) {
+                    Surface(color = CityColors.positiveBg, shape = RoundedCornerShape(32.dp)) {
+                        Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                            NeighborhoodArt(Modifier.heightIn(min = 148.dp), animateArrival = true)
+                            Text(cityText("welcomeSteps"), Modifier.align(Alignment.CenterHorizontally).padding(top = 8.dp),
+                                style = MaterialTheme.typography.labelMedium, color = CityColors.primary)
+                        }
+                    }
+                }
+            }
+            Arrival(3) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    CityButton(cityText("explore"), { viewModel.loginWithDemoCitizen() }, loading = op.busy, icon = Icons.AutoMirrored.Filled.ArrowForward)
+                    if (mode == null) OperationFeedback(viewModel, "auth")
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        TextButton({ mode = "login"; submitted = false; viewModel.clearOperation() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(s.loginTab) }
+                        TextButton({ mode = "signup"; submitted = false; viewModel.clearOperation() }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(s.signupTab) }
+                        TextButton({ mode = "staff"; submitted = false }, Modifier.weight(1f).heightIn(min = 48.dp)) { Text(s.staffTab) }
+                    }
                 }
             }
         }
-        item {
-            CityButton(cityText("explore"), { viewModel.loginWithDemoCitizen() }, loading = op.busy, icon = Icons.AutoMirrored.Filled.ArrowForward)
-            OperationFeedback(viewModel, "auth")
-        }
-        item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton({ mode = "login"; submitted = false; viewModel.clearOperation() }, Modifier.weight(1f).heightIn(min = 52.dp)) { Text(s.loginTab) }
-                OutlinedButton({ mode = "signup"; submitted = false; viewModel.clearOperation() }, Modifier.weight(1f).heightIn(min = 52.dp)) { Text(s.signupTab) }
-                OutlinedButton({ mode = "staff"; submitted = false }, Modifier.weight(1f).heightIn(min = 52.dp)) { Text(s.staffTab) }
-            }
-        }
-        item {
-            TextButton({ showLanguages = true }) { Icon(Icons.Default.Language, null); Spacer(Modifier.width(8.dp)); Text(getAppStrings(language).languageName) }
-            }
     }
     if (showLanguages) CitySheet(s.preferredLanguageLabel, { showLanguages = false }) {
         DemoScenario.languages.forEach { lang -> TextButton({ viewModel.setLanguage(lang); showLanguages = false }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(getAppStrings(lang).languageName) } }

@@ -12,6 +12,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.Density
+import com.example.ui.components.LocalCityMotion
 import com.example.ui.components.CityPage
 import com.example.ui.components.HouseholdQrCard
 import com.example.ui.PreviewCityModel
@@ -40,6 +41,9 @@ class ShowcaseRenderTest {
     private fun Scene(index: Int, model: PreviewCityModel) {
         val view = LocalView.current
         SideEffect { rootView = view }
+        // Static layout captures use the reduced-motion path: software Canvas cannot draw shared RenderNodes.
+        // Motion and predictive Back are exercised separately by MotionInteractionTest.
+        CompositionLocalProvider(LocalCityMotion provides false) {
         Surface(Modifier.fillMaxSize(), color = CityColors.canvas) {
             Column {
                 if (index != 0) {
@@ -62,6 +66,7 @@ class ShowcaseRenderTest {
                 }
             }
         }
+    }
     }
     private fun snapshot(name: String) {
         compose.waitForIdle()
@@ -86,7 +91,7 @@ class ShowcaseRenderTest {
         compose.setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
-                CleanCityTheme(darkTheme = dark.value) { Scene(screen.value, model) }
+                CleanCityTheme(darkTheme = dark.value) { key(screen.value, dark.value) { Scene(screen.value, model) } }
             }
         }
         for (night in themes) for (index in indices) {
@@ -112,7 +117,7 @@ class ShowcaseRenderTest {
     }
 
     @Test fun majorScreensRenderInBothThemes() = render((0..9).toList(), listOf(false, true))
-    @Test fun largeTextOperationalScreensRender() = render(listOf(1, 2, 6, 7, 8, 9), listOf(false), 1.5f, "-large-text")
+    @Test fun largeTextOperationalScreensRender() = render(listOf(0, 1, 2, 6, 7, 8, 9), listOf(false), 1.5f, "-large-text")
     @Test @Config(qualifiers = "w1000dp-h900dp-land-mdpi")
     fun wideOperationalScreensRender() = render(listOf(1, 7, 9), listOf(false), suffix = "-wide")
 
@@ -122,6 +127,9 @@ class ShowcaseRenderTest {
         compose.setContent { CleanCityTheme(darkTheme = false) { Scene(screen.value, model) } }
         compose.onNodeWithTag("supervisor_tab_1").performClick()
         snapshot("supervisor-reports")
+        compose.onAllNodesWithText("Overview")[1].performScrollTo().performClick()
+        snapshot("report-detail")
+        compose.onNodeWithText("Close").performClick()
         compose.onNodeWithTag("supervisor_tab_2").performClick()
         snapshot("supervisor-crew")
         compose.runOnIdle { screen.value = 9 }
@@ -146,6 +154,7 @@ class ShowcaseRenderTest {
         compose.onNodeWithText("Household ID").performTextReplacement("BIN-JH-101")
         compose.onNodeWithText("Open household").performScrollTo().performClick()
         compose.onNodeWithText("Segregation quality").assertIsDisplayed()
+        snapshot("collection-detail")
         compose.onNodeWithText("Save record").performScrollTo().assertIsDisplayed()
         compose.onNodeWithText("Close").performClick()
         compose.runOnIdle { screen.value = 7 }

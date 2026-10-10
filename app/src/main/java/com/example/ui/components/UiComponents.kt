@@ -1,8 +1,11 @@
 package com.example.ui.components
 
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -45,7 +48,7 @@ fun ScreenHeading(title: String, subtitle: String = "", modifier: Modifier = Mod
 fun CityPage(title: String, subtitle: String = "", modifier: Modifier = Modifier, content: LazyListScope.() -> Unit) {
     LazyColumn(modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 20.dp, 20.dp, 32.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)) {
-        item { ScreenHeading(title, subtitle) }
+        item { Arrival { ScreenHeading(title, subtitle) } }
         content()
     }
 }
@@ -74,12 +77,18 @@ fun SectionHeading(number: Int, title: String) {
 @Composable
 fun CityButton(label: String, onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true,
     loading: Boolean = false, icon: ImageVector? = null) {
-    Button(onClick = onClick, enabled = enabled && !loading, modifier = modifier.fillMaxWidth().heightIn(min = 56.dp),
-        shape = RoundedCornerShape(16.dp), contentPadding = PaddingValues(16.dp)) {
+    val interactions = remember { MutableInteractionSource() }
+    val pressed by interactions.collectIsPressedAsState()
+    val motion = LocalCityMotion.current
+    val radius by animateDpAsState(if (loading) 28.dp else if (pressed) 20.dp else 16.dp,
+        if (motion) spring(1f, 700f) else snap(), label = "Button shape")
+    Button(onClick = onClick, enabled = enabled && !loading,
+        modifier = modifier.fillMaxWidth().heightIn(min = 56.dp).cityPress(interactions), interactionSource = interactions,
+        shape = RoundedCornerShape(radius), contentPadding = PaddingValues(16.dp)) {
         if (loading) CircularProgressIndicator(Modifier.size(20.dp), strokeWidth = 2.dp, color = LocalContentColor.current)
         else if (icon != null) Icon(icon, null, Modifier.size(20.dp))
         if (loading || icon != null) Spacer(Modifier.width(10.dp))
-        Text(label, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+        Text(if (loading) cityText("working") else label, style = MaterialTheme.typography.labelLarge, modifier = Modifier.weight(1f), textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
 @Composable
@@ -91,8 +100,18 @@ fun CityField(value: String, onValueChange: (String) -> Unit, label: String, mod
         colors = OutlinedTextFieldDefaults.colors(unfocusedContainerColor = CityColors.surface, focusedContainerColor = CityColors.surface))
 }
 @Composable
+fun CityOutlineButton(onClick: () -> Unit, modifier: Modifier = Modifier, enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit) {
+    val interactions = remember { MutableInteractionSource() }
+    OutlinedButton(onClick, modifier.heightIn(min = 48.dp).cityPress(interactions), enabled = enabled,
+        interactionSource = interactions, shape = RoundedCornerShape(16.dp), content = content)
+}
+@Composable
 fun ChoiceChip(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, icon: ImageVector? = null) {
-    FilterChip(selected, onClick, { Text(label) }, modifier.heightIn(min = 48.dp),
+    val feedback = LocalCityFeedback.current
+    val interactions = remember { MutableInteractionSource() }
+    FilterChip(selected, { if (!selected) feedback(CityFeedback.SELECTION); onClick() }, { Text(label) },
+        modifier.heightIn(min = 48.dp).cityPress(interactions), interactionSource = interactions,
         leadingIcon = if (selected || icon != null) { { Icon(if (selected) Icons.Default.Check else icon!!, null, Modifier.size(18.dp)) } } else null,
         shape = RoundedCornerShape(14.dp))
 }
@@ -131,7 +150,9 @@ fun StatusBadge(label: String, tone: String = "positive", modifier: Modifier = M
         Row(Modifier.padding(horizontal = 10.dp, vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically) {
             Box(Modifier.size(5.dp).background(colors.first, RoundedCornerShape(3.dp)))
-            Text(label, style = MaterialTheme.typography.labelMedium, color = colors.first)
+            CityTransition(label) {
+                Text(it, style = MaterialTheme.typography.labelMedium, color = colors.first)
+            }
         }
     }
 }
@@ -139,7 +160,9 @@ fun StatusBadge(label: String, tone: String = "positive", modifier: Modifier = M
 fun Metric(value: String, label: String, modifier: Modifier = Modifier, icon: ImageVector = Icons.Default.Insights) {
     Column(modifier.padding(vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Icon(icon, null, Modifier.size(22.dp), tint = CityColors.primary)
-        Text(value, style = MaterialTheme.typography.displayMedium, color = CityColors.ink)
+        CityTransition(value) {
+            Text(it, style = MaterialTheme.typography.displayMedium, color = CityColors.ink)
+        }
         Text(label, style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
     }
 }
@@ -202,8 +225,13 @@ fun OperationFeedback(viewModel: CityModel, key: String, onSuccess: () -> Unit =
     val operations by viewModel.operations.collectAsStateWithLifecycle()
     val state = operations[key]
     val latestSuccess by rememberUpdatedState(onSuccess)
+    val feedback = LocalCityFeedback.current
     LaunchedEffect(state) {
-        if (state?.done == true) { viewModel.consumeOperation(key); latestSuccess() }
+        if (state?.done == true) {
+            viewModel.consumeOperation(key)
+            feedback(if (key == "ppe") CityFeedback.SELECTION else CityFeedback.CONFIRM)
+            latestSuccess()
+        }
     }
     if (state?.error != null) {
         Surface(color = CityColors.errorBg, shape = RoundedCornerShape(12.dp)) {
@@ -222,13 +250,14 @@ fun AdaptiveColumns(primary: @Composable () -> Unit, secondary: @Composable () -
 }
 @Composable
 fun ProgressLine(progress: Float) {
-    val animated by animateFloatAsState(progress.coerceIn(0f, 1f), tween(220), label = "Progress")
+    val motion = LocalCityMotion.current
+    val animated by animateFloatAsState(progress.coerceIn(0f, 1f), if (motion) spring(1f, 450f) else snap(), label = "Progress")
     LinearProgressIndicator(progress = { animated }, modifier = Modifier.fillMaxWidth().height(8.dp),
         color = CityColors.primary, trackColor = CityColors.soft)
 }
 
 @Composable
-fun PersonRecord(name: String, detail: String, onClick: (() -> Unit)? = null, trailing: @Composable () -> Unit = {}) {
+fun PersonRecord(name: String, detail: String, onClick: (() -> Unit)? = null, modifier: Modifier = Modifier, trailing: @Composable () -> Unit = {}) {
     val content: @Composable () -> Unit = {
         Row(Modifier.fillMaxWidth().padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -245,7 +274,10 @@ fun PersonRecord(name: String, detail: String, onClick: (() -> Unit)? = null, tr
             trailing()
         }
     }
-    if (onClick == null) content() else Surface(onClick = onClick, color = Color.Transparent, shape = RoundedCornerShape(16.dp)) { content() }
+    val interactions = remember { MutableInteractionSource() }
+    if (onClick == null) Box(modifier) { content() }
+    else Surface(onClick = onClick, modifier = modifier.cityPress(interactions), interactionSource = interactions,
+        color = Color.Transparent, shape = RoundedCornerShape(16.dp)) { content() }
     HorizontalDivider(color = CityColors.line)
 }
 

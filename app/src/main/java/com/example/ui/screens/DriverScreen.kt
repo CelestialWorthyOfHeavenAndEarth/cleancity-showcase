@@ -21,6 +21,7 @@ import com.example.util.*
 @Composable
 fun DriverScreen(viewModel: CityModel, weighbridgeLogs: List<WeighbridgeLogEntity>, modifier: Modifier = Modifier) {
     val s = appStrings()
+    val feedback = LocalCityFeedback.current
     val stops by viewModel.completedDriverStops.collectAsStateWithLifecycle()
     val notices by viewModel.demoNotices.collectAsStateWithLifecycle()
     val op by viewModel.operation.collectAsStateWithLifecycle()
@@ -40,9 +41,9 @@ fun DriverScreen(viewModel: CityModel, weighbridgeLogs: List<WeighbridgeLogEntit
                 Text(DemoScenario.vehicle, style = MaterialTheme.typography.headlineLarge)
                 Text(DemoScenario.ward, color = CityColors.muted)
                 ProgressLine(stops.size.toFloat() / locations.size)
-                Text(stops.size.toString() + " / 4 · " + cityText("completed"))
+                MotionNumber(stops.size, " / " + locations.size + " · " + cityText("completed"), MaterialTheme.typography.titleMedium)
                 CityButton(cityText("weights"), { viewModel.clearOperation(); attempted = false; showWeight = true }, icon = Icons.Default.Scale)
-                OutlinedButton({ showSos = true }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                CityOutlineButton({ showSos = true }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                     Icon(Icons.Default.WarningAmber, null); Spacer(Modifier.width(8.dp)); Text(if ("sos" in notices) cityText("demoRecorded") else cityText("sos"))
                 }
             }
@@ -50,9 +51,9 @@ fun DriverScreen(viewModel: CityModel, weighbridgeLogs: List<WeighbridgeLogEntit
         item { SectionTitle(cityText("stops")) }
         items(locations.size) { index ->
             CityRecord(locations[index], "1100 L · " + if (index % 2 == 0) s.wetWaste else s.dryWaste, Icons.Default.DeleteOutline) {
-                IconButton({ viewModel.completeDriverStop(index) }, enabled = index !in stops) {
-                    Icon(if (index in stops) Icons.Default.CheckCircle else Icons.Default.AddCircleOutline,
-                        if (index in stops) cityText("completed") else cityText("record"), tint = CityColors.primary)
+                IconButton({ viewModel.completeDriverStop(index); feedback(CityFeedback.CONFIRM) }, enabled = index !in stops) {
+                    if (index in stops) SuccessMark()
+                    else Icon(Icons.Default.AddCircleOutline, cityText("record"), tint = CityColors.primary)
                 }
             }
         }
@@ -66,7 +67,7 @@ fun DriverScreen(viewModel: CityModel, weighbridgeLogs: List<WeighbridgeLogEntit
         Text(DemoScenario.vehicle, style = MaterialTheme.typography.headlineMedium)
         Text(DemoScenario.ward)
         ContextNote(cityText("issueHint"))
-        CityButton(cityText("confirm"), { viewModel.acknowledgeDemo("sos"); showSos = false })
+        CityButton(cityText("confirm"), { viewModel.acknowledgeDemo("sos"); feedback(CityFeedback.CONFIRM); showSos = false })
     }
     if (showWeight) CitySheet(cityText("weights"), { if (!op.busy) showWeight = false }) {
         val grossValue = gross.toDoubleOrNull()

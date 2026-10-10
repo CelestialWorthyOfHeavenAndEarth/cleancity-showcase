@@ -25,6 +25,7 @@ import com.example.util.*
 @Composable
 fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violations: List<ViolationFineEntity>, modifier: Modifier = Modifier) {
     val s = appStrings()
+    val feedback = LocalCityFeedback.current
     val clipboard = LocalClipboardManager.current
     var showTransactions by rememberSaveable { mutableStateOf(false) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
@@ -47,13 +48,14 @@ fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violati
     Column(modifier.fillMaxSize()) {
         WorkspaceTabs(listOf(cityText("overview"), cityText("wards"), cityText("finance"), cityText("fines")),
             listOf(Icons.Default.Insights, Icons.Default.Map, Icons.Default.AccountBalance, Icons.Default.Gavel), tab, { tab = it }, "admin_tab")
-        holder.SaveableStateProvider(tab) {
-            when(tab) {
+        CityTransition(tab, Modifier.weight(1f), direction = { from, to -> to.compareTo(from) }) { activeTab ->
+        holder.SaveableStateProvider(activeTab) {
+            when(activeTab) {
                 0 -> CityPage(s.roleAdmin, DemoScenario.date()) {
                     item { AdaptiveColumns(primary = {
                         CityPanel(color = CityColors.positiveBg) {
                             StatusBadge(cityText("today"))
-                            Text("%.0f%%".format(stats.coveragePercent), style = MaterialTheme.typography.displayLarge)
+                            MotionNumber(stats.coveragePercent.toInt(), "%", MaterialTheme.typography.displayLarge)
                             Text(cityText("coverage"), style = MaterialTheme.typography.titleMedium)
                             ProgressLine((stats.coveragePercent / 100).toFloat())
                             Text(stats.collectedToday.toString() + " / " + stats.totalHouseholds + " · " + cityText("collected"), color = CityColors.muted)
@@ -109,7 +111,7 @@ fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violati
                         CityPanel {
                             PersonRecord(home.residentName, home.address)
                             Text(DemoScenario.money(home.monthlyFee), style = MaterialTheme.typography.titleLarge)
-                            OutlinedButton({ reminderId = home.id }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
+                            CityOutlineButton({ reminderId = home.id }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                                 Text(if ("reminder-" + home.id in notices) cityText("demoRecorded") else cityText("reminder"))
                             }
                         }
@@ -129,6 +131,7 @@ fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violati
                 }
             }
         }
+        }
     }
     households.firstOrNull { it.id == reminderId }?.let { home ->
         CitySheet(cityText("reminder"), { reminderId = null }) {
@@ -138,7 +141,7 @@ fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violati
             val reminderText = home.residentName + " · " + s.monthlyFee + ": " + DemoScenario.money(home.monthlyFee) + " · " + DemoScenario.period()
             CityPanel { Text(reminderText) }
             CityButton(cityText("copyReminder"), {
-                clipboard.setText(AnnotatedString(reminderText)); viewModel.acknowledgeDemo("reminder-" + home.id); reminderId = null
+                clipboard.setText(AnnotatedString(reminderText)); viewModel.acknowledgeDemo("reminder-" + home.id); feedback(CityFeedback.CONFIRM); reminderId = null
             }, icon = Icons.Default.ContentCopy)
         }
     }

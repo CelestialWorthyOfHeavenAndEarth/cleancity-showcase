@@ -32,6 +32,10 @@ QR encoding and decoding use [ZXing](https://github.com/zxing/zxing); camera sca
 
 Search and status filters keep the larger lists manageable. Citizen drafts and navigation are saved separately for each selected household. Room records and appearance/language preferences persist; route completion and acknowledgments are held in the saved session.
 
+## Motion and navigation
+
+Home displays the full household name, including **Mahesh Babu**, alongside a compact pickup panel and three shortcuts. The welcome illustration arrives once; controls use spring press feedback, tabs transition directionally, and saved values animate. Report and collection records expand into their detail pages, with predictive Back that preserves drafts on cancellation and restores list position. Semantic haptics follow successful actions, and motion follows the system animation setting. Enlarged text uses wider shortcuts and scrolling navigation. See [MOTION_DESIGN.md](MOTION_DESIGN.md) for the interaction rules and verification boundaries.
+
 ## Build
 
 Use the checked-in Gradle 9.3.1 wrapper and Android SDK 36.1. This workspace was built with JDK 22.
