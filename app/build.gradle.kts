@@ -46,7 +46,10 @@ android {
       signingConfig = signingConfigs.getByName("release")
     }
     debug {
-      signingConfig = signingConfigs.getByName("debugConfig")
+      // Use a supplied project key when present; keep fresh local checkouts buildable.
+      if (file("${rootDir}/debug.keystore").isFile) {
+        signingConfig = signingConfigs.getByName("debugConfig")
+      }
     }
   }
   compileOptions {

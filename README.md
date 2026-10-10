@@ -42,6 +42,8 @@ Use the checked-in Gradle 9.3.1 wrapper and Android SDK 36.1. This workspace was
 
 The package is generated at `app/build/outputs/apk/debug/app-debug.apk`. Local `.env` files, signing credentials, APKs and build caches are excluded from Git. `CleanCity-Showcase-debug.apk` is the local handoff copy.
 
+Debug builds use a project-root `debug.keystore` when supplied; otherwise they use Android's standard local debug key.
+
 `DesignPreviews.kt` supplies light/dark, phone, wide and large-text configurations. Host renders are written to `app/build/showcase-renders/`; QR tests produce `app/build/household-tags/`. These checks do not replace testing camera permissions, hardware scanning and platform interactions on a device.
 
 ## Integration boundaries
