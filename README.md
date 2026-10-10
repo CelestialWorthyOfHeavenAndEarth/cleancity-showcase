@@ -34,7 +34,9 @@ Search and status filters keep the larger lists manageable. Citizen drafts and n
 
 ## Motion and navigation
 
-Home displays the full household name, including **Mahesh Babu**, alongside a compact pickup panel and three shortcuts. The welcome illustration arrives once; controls use spring press feedback, tabs transition directionally, and saved values animate. Report and collection records expand into their detail pages, with predictive Back that preserves drafts on cancellation and restores list position. Semantic haptics follow successful actions, and motion follows the system animation setting. Enlarged text uses wider shortcuts and scrolling navigation. See [MOTION_DESIGN.md](MOTION_DESIGN.md) for the interaction rules and verification boundaries.
+Home displays the full household name, including **Mahesh Babu**. The AI Studio update places Household QR inside the pickup card, with Report and Bills below, and improves crew cards and scrolling filters. Controls use spring press feedback, tabs transition directionally, and saved values animate. Report and collection records expand into their detail pages, with predictive Back that preserves drafts on cancellation and restores list position.
+
+The welcome page uses the supplied neighborhood video behind a translucent theme-aware gradient. The bundled clip is silent, local and 8.58 seconds long, with a softened loop boundary. A pause/play control is available; disabled system animations use a still image. Video stops for sign-in forms, language selection, leaving the welcome page or backgrounding the app. Playback failure also falls back to the still image, without blocking entry. See [MOTION_DESIGN.md](MOTION_DESIGN.md) and [welcome video notes](docs/WELCOME_VIDEO.md).
 
 ## Build
 

@@ -25,3 +25,6 @@ debug.keystore
 .env.*
 !.env.example
 google-services.json
+
+# User-supplied source clip; the optimized welcome asset is in res/raw.
+/Video-25080.mp4

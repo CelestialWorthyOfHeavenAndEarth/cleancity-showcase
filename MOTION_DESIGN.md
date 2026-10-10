@@ -4,9 +4,9 @@ Implemented 10 October 2026. The white and emerald palette is retained.
 
 ## Opening and Home
 
-The welcome screen introduces the app with a large headline, a neighborhood illustration and a pinned Get started action. Buildings settle into place and the collection vehicle arrives once. Nothing decorative loops or holds up entry.
+The welcome screen introduces the app with a large headline, a translucent neighborhood video and a pinned Get started action. The supplied video loops silently, with a pause control and a still fallback. It stops in the background, behind forms and after entry. Video preparation never holds up entry. The Home illustration retains its one-time vehicle arrival.
 
-Home uses a time-of-day greeting and the household's full resident name, including **Mahesh Babu**. A compact pickup panel leads into Report, Bills and Household QR. Scores and streaks follow. On wider screens, pickup and impact summaries sit together.
+Home uses a time-of-day greeting and the household's full resident name, including **Mahesh Babu**. The AI Studio follow-up places Household QR inside the pickup panel, followed by Report and Bills. Scores and streaks follow.
 
 First-entry content rises 14dp with a short fade. The first four groups are offset by 40ms. Entry state is saved so returning to a destination does not replay the introduction.
 
@@ -25,7 +25,7 @@ First-entry content rises 14dp with a short fade. The first four groups are offs
 | Successful action | Checkmark drawing and semantic confirmation feedback |
 | Sorting guidance | Arrow rotates as guidance expands |
 
-Springs govern physical movement and bounds. Opacity and short number changes use eased durations. There is no perpetual truck travel, decorative shimmer or forced loading delay.
+Springs govern physical movement and bounds. Opacity and short number changes use eased durations. The welcome video is the single intentional decorative loop and can be paused. There is no perpetual illustration travel, decorative shimmer or forced loading delay.
 
 Details use the same composition as their lists because shared bounds cannot connect separate Android dialog windows. Other forms continue to use Material sheets and their platform motion. The app opts into Android's Back callback integration; custom gesture progress applies to report and household details. Other Back destinations retain their existing navigation behavior.
 
@@ -39,7 +39,7 @@ Controls retain minimum touch sizes, scrolling forms, keyboard insets and locali
 
 ## Verification boundaries
 
-`MotionInteractionTest` exercises full-name rendering and shortcuts, a cancelled and completed predictive Back sequence, preserved detail drafts and list position, success-only feedback dispatch, and disabled-animation behavior. Existing data, QR, migration and screen tests remain part of verification.
+`MotionInteractionTest` exercises full-name rendering and shortcuts, a cancelled and completed predictive Back sequence, preserved detail drafts and list position, success-only feedback dispatch, and disabled-animation behavior. WelcomeVideoTest checks muted looping, release on lifecycle changes, delayed preparation after disposal, error fallback, reduced-motion behavior, pause controls and immediate entry. Existing data, QR, migration and screen tests remain part of verification.
 
 Static host screenshots use the reduced-motion path because a software bitmap canvas cannot draw Compose shared-transition RenderNodes. These screenshots assess settled layout, not animation smoothness. Gesture feel, hardware haptic strength, actual frame pacing and physical-device rendering still require simulator/device review. Current test counts and APK identity are recorded in [UI_CHANGES.md](UI_CHANGES.md).
 

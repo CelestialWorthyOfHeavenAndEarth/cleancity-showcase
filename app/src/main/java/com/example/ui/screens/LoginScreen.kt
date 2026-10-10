@@ -29,6 +29,7 @@ fun LoginScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
     val s = appStrings()
     val language by viewModel.selectedLanguage.collectAsStateWithLifecycle()
     val op by viewModel.operation.collectAsStateWithLifecycle()
+    val loggedIn by viewModel.isLoggedIn.collectAsStateWithLifecycle()
     var mode by rememberSaveable { mutableStateOf<String?>(null) }
     var phone by rememberSaveable { mutableStateOf("") }
     var otp by rememberSaveable { mutableStateOf("") }
@@ -39,7 +40,9 @@ fun LoginScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
     var staff by rememberSaveable { mutableStateOf(UserRole.COLLECTOR) }
     var showLanguages by remember { mutableStateOf(false) }
     var submitted by rememberSaveable { mutableStateOf(false) }
+    var videoPaused by rememberSaveable { mutableStateOf(false) }
     Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        WelcomeBackdrop(Modifier.matchParentSize(), playbackAllowed = !loggedIn && !videoPaused && mode == null && !showLanguages)
         Column(Modifier.widthIn(max = 600.dp).fillMaxSize().padding(horizontal = 24.dp, vertical = 12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Surface(color = CityColors.forest, shape = RoundedCornerShape(14.dp)) {
@@ -57,19 +60,17 @@ fun LoginScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
                 Arrival {
                     Text(cityText("welcomeHeadline"), style = MaterialTheme.typography.displayLarge.copy(fontSize = 40.sp, lineHeight = 47.sp), color = CityColors.ink)
                 }
-                Arrival(1) { Text(cityText("welcomeBody"), color = CityColors.muted, style = MaterialTheme.typography.bodyLarge) }
-                Arrival(2) {
-                    Surface(color = CityColors.positiveBg, shape = RoundedCornerShape(32.dp)) {
-                        Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                            NeighborhoodArt(Modifier.heightIn(min = 148.dp), animateArrival = true)
-                            Text(cityText("welcomeSteps"), Modifier.align(Alignment.CenterHorizontally).padding(top = 8.dp),
-                                style = MaterialTheme.typography.labelMedium, color = CityColors.primary)
-                        }
-                    }
-                }
+                Arrival(1) { Text(cityText("welcomeBody"), color = CityColors.ink, style = MaterialTheme.typography.bodyLarge) }
             }
             Arrival(3) {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text(cityText("welcomeSteps"), Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, color = CityColors.ink)
+                        if (LocalCityMotion.current) IconButton({ videoPaused = !videoPaused }) {
+                            Icon(if (videoPaused) Icons.Default.PlayArrow else Icons.Default.Pause,
+                                cityText(if (videoPaused) "playBackground" else "pauseBackground"), tint = CityColors.primary)
+                        }
+                    }
                     CityButton(cityText("explore"), { viewModel.loginWithDemoCitizen() }, loading = op.busy, icon = Icons.AutoMirrored.Filled.ArrowForward)
                     if (mode == null) OperationFeedback(viewModel, "auth")
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {

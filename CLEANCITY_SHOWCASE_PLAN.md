@@ -83,3 +83,7 @@ The user-approved white and emerald reference supersedes the original warm ivory
 ## Motion and Home revision — 10 October 2026
 
 The approved follow-up adds physical press feedback, shared-bound report/collection details, predictive Back with preserved drafts and scroll position, meaningful progress and success animation, and restrained semantic haptics. Welcome and Home have been recomposed with a one-time neighborhood arrival, concise pickup information and direct shortcuts. Home shows the full resident name: Mahesh Babu. The reference palette is retained. Motion respects disabled system animations. See [MOTION_DESIGN.md](MOTION_DESIGN.md) for the implemented rules and [UI_CHANGES.md](UI_CHANGES.md) for actual verification.
+
+## AI Studio sync and welcome video — 10 October 2026
+
+Pulled the user's AI Studio commit `7e4a131`, preserving the deeper emerald palette, QR action inside the pickup card, scrolling chip rows and revised crew cards. The supplied neighborhood video now replaces the welcome illustration behind a translucent gradient. It is bundled for offline playback, silent, pausable, lifecycle-aware and backed by a still image. Current verification is recorded in UI_CHANGES.md; media preparation details are in docs/WELCOME_VIDEO.md.
