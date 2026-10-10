@@ -34,7 +34,7 @@ fun LoginScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
     var staff by rememberSaveable { mutableStateOf(UserRole.COLLECTOR) }
     var showLanguages by remember { mutableStateOf(false) }
     var submitted by rememberSaveable { mutableStateOf(false) }
-    CityPage("CleanCity", cityText("offline"), modifier) {
+    CityPage("CleanCity", cityText("welcome"), modifier) {
         item {
             Surface(color = CityColors.forest, shape = RoundedCornerShape(28.dp)) {
                 Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -57,15 +57,13 @@ fun LoginScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
         }
         item {
             TextButton({ showLanguages = true }) { Icon(Icons.Default.Language, null); Spacer(Modifier.width(8.dp)); Text(getAppStrings(language).languageName) }
-            DemoNote()
-        }
+            }
     }
     if (showLanguages) CitySheet(s.preferredLanguageLabel, { showLanguages = false }) {
         DemoScenario.languages.forEach { lang -> TextButton({ viewModel.setLanguage(lang); showLanguages = false }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) { Text(getAppStrings(lang).languageName) } }
     }
     if (mode != null) CitySheet(when(mode) { "signup" -> s.citizenSignupTitle; "staff" -> s.staffLoginTitle; else -> s.citizenLoginTitle },
         { if (!op.busy) mode = null }) {
-        DemoNote()
         if (mode == "staff") {
             UserRole.entries.filter { it != UserRole.CITIZEN }.forEach { role -> ChoiceChip(roleLabel(role), staff == role, { staff = role }, Modifier.fillMaxWidth()) }
             CityButton(s.enterDashboard, { viewModel.loginAsStaff(staff); mode = null })
@@ -80,7 +78,7 @@ fun LoginScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
             }
             CityField(phone, { phone = it.filter(Char::isDigit).take(10) }, s.mobileNumberLabel, keyboard = KeyboardType.Phone, error = submitted && phone.length != 10)
             CityField(otp, { otp = it.filter(Char::isDigit).take(6) }, s.enterOtpLabel, keyboard = KeyboardType.Number, error = submitted && otp != DemoScenario.otp)
-            TextButton({ otp = DemoScenario.otp }) { Text(cityText("demo") + " OTP · " + DemoScenario.otp) }
+            TextButton({ otp = DemoScenario.otp }) { Text("OTP · " + DemoScenario.otp) }
             if (submitted && (phone.length != 10 || otp != DemoScenario.otp)) Text(if (phone.length != 10) s.invalidPhoneError else s.invalidOtpError, color = CityColors.error)
             OperationFeedback(viewModel, "auth", { mode = null })
             CityButton(if (mode == "signup") s.registerAndContinue else s.verifyAndLogin, {

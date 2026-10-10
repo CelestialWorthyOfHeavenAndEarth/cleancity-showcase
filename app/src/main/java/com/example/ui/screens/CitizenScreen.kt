@@ -67,10 +67,10 @@ fun CitizenScreen(viewModel: CityModel, household: HouseholdEntity?, announcemen
     }
     if (showTag && household != null) HouseholdQrTagDialog(household) { showTag = false }
     payments.firstOrNull { it.id == receiptId }?.let { payment -> PaymentReceiptDialog(payment, household) { receiptId = null } }
-    if (paymentOpen && household != null) CitySheet(s.payNow, { if (!op.busy) paymentOpen = false }) {
+    if (paymentOpen && household != null) CitySheet(cityText("paymentRecord"), { if (!op.busy) paymentOpen = false }) {
         Text(DemoScenario.money(household.monthlyFee), style = MaterialTheme.typography.displayLarge)
         Text(DemoScenario.period() + " · " + household.residentName, color = CityColors.muted)
-        DemoNote(cityText("demoPayment"))
+        ContextNote(cityText("demoPayment"))
         OperationFeedback(viewModel, "payment") { paymentOpen = false }
         CityButton(cityText("confirm"), { viewModel.payMonthlyFee(household.id, household.monthlyFee) }, loading = op.busy)
     }
@@ -80,18 +80,19 @@ fun DailyPickupTab(household: HouseholdEntity?, announcements: List<Announcement
     onReportWaste: (() -> Unit)? = null, onViewBills: (() -> Unit)? = null, pickups: List<PickupLogEntity> = emptyList()) {
     val s = appStrings()
     val today = DemoScenario.today(pickups).firstOrNull()
+    var allPickups by rememberSaveable { mutableStateOf(false) }
     var allAnnouncements by rememberSaveable { mutableStateOf(false) }
     CityPage(cityText("homeTitle"), household?.residentName.orEmpty() + " · " + cityText("today")) {
         item {
             AdaptiveColumns(primary = {
                 Surface(color = CityColors.forest, shape = RoundedCornerShape(28.dp)) {
                     Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(cityText("sampleSchedule"), style = MaterialTheme.typography.labelLarge, color = CityColors.lime)
+                        Text(if (today == null) cityText("sampleSchedule") else cityText("today"), style = MaterialTheme.typography.labelLarge, color = CityColors.lime)
                         Text(if (today == null) "7:00 – 9:30 AM" else when(today.status) { "COLLECTED" -> s.truckCollected; else -> cityText("exceptions") },
                             style = MaterialTheme.typography.displayLarge, color = CityColors.onForest)
                         Text(if (today == null) s.wetWaste + " · " + s.dryWaste else DemoScenario.timestamp(today.timestamp),
                             style = MaterialTheme.typography.bodyMedium, color = CityColors.onForest)
-                        NeighborhoodArt()
+                        NeighborhoodArt(Modifier.height(128.dp))
                         Button(onOpenQrTag, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = household != null,
                             colors = ButtonDefaults.buttonColors(containerColor = CityColors.lime, contentColor = CityColors.forest), shape = RoundedCornerShape(14.dp)) {
                             Icon(Icons.Default.QrCode2, null); Spacer(Modifier.width(8.dp)); Text(s.householdQrCode)
@@ -116,8 +117,9 @@ fun DailyPickupTab(household: HouseholdEntity?, announcements: List<Announcement
             })
         }
         if (pickups.isNotEmpty()) {
-            item { SectionTitle(s.collectionHistory) }
-            items(pickups.take(3), key = { "pickup-" + it.id }) { log ->
+            item { CollectionWeek(pickups) }
+            item { SectionTitle(s.collectionHistory, if (allPickups) s.close else s.filterAll, { allPickups = !allPickups }) }
+            items(if (allPickups) pickups else pickups.take(3), key = { "pickup-" + it.id }) { log ->
                 CityRecord(if (log.status == "COLLECTED") cityText("collected") else cityText("exceptions"),
                     DemoScenario.timestamp(log.timestamp) + " · " + log.collectorName, Icons.Default.Recycling)
             }
@@ -178,8 +180,7 @@ fun BillsPaymentTab(household: HouseholdEntity?, payments: List<PaymentEntity>, 
                 }
                 Text(DemoScenario.money(if (due) household?.monthlyFee ?: 0.0 else 0.0), style = MaterialTheme.typography.displayLarge)
                 Text(s.currentOutstanding, style = MaterialTheme.typography.bodyMedium, color = CityColors.muted)
-                DemoNote(cityText("demoPayment"))
-                if (due) CityButton(s.payNow, { household?.let { onPayFee(it.id, it.monthlyFee) } }, enabled = household != null, icon = Icons.Default.Payment)
+                if (due) CityButton(cityText("paymentRecord"), { household?.let { onPayFee(it.id, it.monthlyFee) } }, enabled = household != null, icon = Icons.Default.Payment)
                 else scoped.firstOrNull()?.let { payment -> CityButton(cityText("viewReceipt"), { onViewReceipt(payment) }, icon = Icons.AutoMirrored.Filled.ReceiptLong) }
             }
         }
@@ -193,40 +194,24 @@ fun BillsPaymentTab(household: HouseholdEntity?, payments: List<PaymentEntity>, 
 }
 @Composable
 fun HouseholdQrTagDialog(household: HouseholdEntity, onDismiss: () -> Unit) {
-    val s = appStrings()
-    CitySheet(s.householdQrCode, onDismiss) {
-        Surface(color = CityColors.forest, shape = RoundedCornerShape(24.dp)) {
-            Column(Modifier.fillMaxWidth().padding(28.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Icon(Icons.Default.Eco, null, tint = CityColors.lime)
-                    Text(cityText("demo"), color = CityColors.lime)
-                }
-                Text(household.qrCode, style = MaterialTheme.typography.headlineLarge, color = CityColors.onForest)
-                Text(household.residentName, style = MaterialTheme.typography.titleMedium, color = CityColors.onForest)
-                HorizontalDivider(color = CityColors.onForest.copy(alpha=.3f))
-                Text(household.address, color = CityColors.onForest)
-            }
-        }
-        Text(cityText("simulateScan"), style = MaterialTheme.typography.titleMedium)
-        DemoNote()
-    }
+    CitySheet(appStrings().householdQrCode, onDismiss) { HouseholdQrCard(household) }
 }
+
 @Composable
 fun PaymentReceiptDialog(payment: PaymentEntity, household: HouseholdEntity?, onDismiss: () -> Unit) {
     val s = appStrings()
     CitySheet(cityText("viewReceipt"), onDismiss) {
         Icon(Icons.Default.CheckCircle, null, Modifier.size(48.dp), tint = CityColors.primary)
-        Text(s.paymentSuccessTitle, style = MaterialTheme.typography.headlineMedium)
+        Text(cityText("receiptTitle"), style = MaterialTheme.typography.headlineMedium)
         Text(DemoScenario.money(payment.amount), style = MaterialTheme.typography.displayLarge)
         CityPanel {
             Text(household?.residentName.orEmpty(), style = MaterialTheme.typography.titleMedium)
             Text(payment.monthYear)
             HorizontalDivider(color = CityColors.line)
             Text(payment.receiptNumber)
-            Text(s.upiReference + ": " + payment.upiRef, style = MaterialTheme.typography.bodySmall)
+            Text(cityText("reference") + ": " + payment.upiRef, style = MaterialTheme.typography.bodySmall)
             Text(DemoScenario.timestamp(payment.paidAt), color = CityColors.muted)
         }
-        DemoNote(cityText("demoPayment"))
     }
 }
 

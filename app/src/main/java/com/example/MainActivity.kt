@@ -82,10 +82,11 @@ fun CleanCityApp(viewModel: CleanCityViewModel = viewModel()) {
                     else {
                         RoleHeaderBar(role, language, viewModel::setRole, viewModel::setLanguage,
                             residentName = household?.residentName, onLogout = viewModel::logout, wardName = household?.ward,
-                            appearance = appearance, onAppearance = viewModel::setAppearance)
+                            appearance = appearance, onAppearance = viewModel::setAppearance,
+                            households = homes, onHouseholdSelected = viewModel::selectHousehold)
                         HorizontalDivider(color = CityColors.line)
                         Crossfade(role, Modifier.weight(1f), tween(220), label = "Role") { active ->
-                            stateHolder.SaveableStateProvider(active.name) {
+                            stateHolder.SaveableStateProvider(if (active == UserRole.CITIZEN) active.name + household?.id else active.name) {
                                 when (active) {
                                     UserRole.CITIZEN -> CitizenScreen(viewModel, household, notices, citizenReports, payments)
                                     UserRole.COLLECTOR -> CollectorScreen(viewModel, homes, pickups)

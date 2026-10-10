@@ -226,7 +226,7 @@ class CleanCityFunctionalityAndSecurityTest {
         CleanCityDatabase.ensureDemoHousehold(dao)
         val demo = dao.getHouseholdByQrCode("BIN-JH-101")
         assertNotNull(demo)
-        assertEquals("Mahesh babu", demo?.residentName)
+        assertEquals("Mahesh Babu", demo?.residentName)
         assertEquals("Jubilee Hills, Hyderabad, India", demo?.address)
         assertEquals("Ward 104 - Jubilee Hills, Hyderabad", demo?.ward)
         assertEquals("English", demo?.preferredLanguage)

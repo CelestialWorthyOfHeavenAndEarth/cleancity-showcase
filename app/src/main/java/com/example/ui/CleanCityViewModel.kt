@@ -107,6 +107,9 @@ class CleanCityViewModel(application: Application, private val saved: SavedState
         operations.value = operations.value - key
         if (operation.value.key == key) clearOperation()
     }
+    override fun selectHousehold(id: Int) {
+        if (households.value.any { it.id == id }) { saved["household"] = id; clearOperation() }
+    }
     override fun setRole(role: UserRole) { saved["role"] = role; clearOperation() }
     override fun setLanguage(language: String) {
         selectedLanguage.value = language
@@ -146,15 +149,15 @@ class CleanCityViewModel(application: Application, private val saved: SavedState
         repository.submitComplaint(title, category, description, household.ward, address, latitude, longitude,
             photoPath, household.phone, household.id)
     }
-    override fun markWasteReportResolved(id: Int) = resolveComplaint(id, "demo:citizen-confirmation")
+    override fun markWasteReportResolved(id: Int) = resolveComplaint(id, "note:Resolution confirmed by resident.")
     override fun payMonthlyFee(householdId: Int, amount: Double) = action("payment") {
         require(householdId == selectedHouseholdId.value)
-        repository.payMonthlyFee(householdId, DemoScenario.period(), amount, "DEMO-" + System.currentTimeMillis())
+        repository.payMonthlyFee(householdId, DemoScenario.period(), amount, "CC-" + System.currentTimeMillis())
     }
     override fun markCollection(household: HouseholdEntity, status: String, quality: String, reason: String?) = action("collection") {
-        repository.recordPickup(household.id, household.address, household.residentName, "Ramesh Kumar", status, quality, reason)
+        repository.recordPickup(household.id, household.address, household.residentName, CityFixtures.collector, status, quality, reason)
     }
-    override fun simulateQrScan(qrCode: String): HouseholdEntity? = households.value.firstOrNull { it.qrCode.equals(qrCode.trim(), true) }
+    override fun findHouseholdByQr(qrCode: String): HouseholdEntity? = households.value.firstOrNull { it.qrCode.equals(qrCode.trim(), true) }
     override fun submitWeighbridgeEntry(vehicleNo: String, driver: String, wasteType: String, grossKg: Double, tareKg: Double, plant: String) = action("weight") {
         repository.logWeighbridge(vehicleNo, driver, wasteType, grossKg, tareKg, plant)
     }

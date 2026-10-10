@@ -10,6 +10,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CleanCityDao {
+    @Query("SELECT COUNT(*) FROM seed_markers WHERE `key` = :key")
+    suspend fun seedApplied(key: String): Int
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun markSeedApplied(marker: SeedMarkerEntity)
 
     @Query("SELECT * FROM households WHERE id = :id LIMIT 1")
     suspend fun householdNow(id: Int): HouseholdEntity?

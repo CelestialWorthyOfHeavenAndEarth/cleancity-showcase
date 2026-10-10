@@ -26,12 +26,15 @@ fun CollectorScreen(viewModel: CityModel, households: List<HouseholdEntity>, pic
     val collected = today.count { it.status == "COLLECTED" }
     var scanner by rememberSaveable { mutableStateOf(false) }
     var selectedId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var query by rememberSaveable { mutableStateOf("") }
+    var filter by rememberSaveable { mutableIntStateOf(0) }
+    var showCode by rememberSaveable { mutableStateOf(false) }
     var earnings by rememberSaveable { mutableStateOf(false) }
     var status by rememberSaveable { mutableStateOf("COLLECTED") }
     var quality by rememberSaveable { mutableStateOf("GOOD") }
     var reason by rememberSaveable { mutableIntStateOf(0) }
-    fun select(id: Int) { viewModel.clearOperation(); selectedId = id; status = "COLLECTED"; quality = "GOOD"; reason = 0 }
-    CityPage(cityText("route"), "Ramesh Kumar · " + DemoScenario.date(), modifier) {
+    fun select(id: Int) { viewModel.clearOperation(); selectedId = id; status = "COLLECTED"; quality = "GOOD"; reason = 0; showCode = false }
+    CityPage(cityText("route"), CityFixtures.collector + " · " + DemoScenario.date(), modifier) {
         item {
             AdaptiveColumns(primary = {
                 CityPanel(color = CityColors.positiveBg) {
@@ -39,32 +42,42 @@ fun CollectorScreen(viewModel: CityModel, households: List<HouseholdEntity>, pic
                     Text(recorded.size.toString() + " / " + households.size, style = MaterialTheme.typography.displayLarge)
                     Text(cityText("stops") + " · " + cityText("completed"), color = CityColors.muted)
                     ProgressLine(if (households.isEmpty()) 0f else recorded.size.toFloat()/households.size)
-                    CityButton(cityText("simulateScan"), { scanner = true }, icon = Icons.Default.QrCodeScanner)
+                    CityButton(cityText("scanQr"), { scanner = true }, icon = Icons.Default.QrCodeScanner)
                 }
             }, secondary = {
                 MetricPair(collected.toString(), cityText("collected"), (today.size - collected).toString(), cityText("exceptions"))
                 OutlinedButton({ earnings = true }, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Icon(Icons.Default.AccountBalanceWallet, null); Spacer(Modifier.width(8.dp)); Text(cityText("earnings")) }
             })
         }
-        item { SectionTitle(cityText("stops")) }
+        item {
+            SectionTitle(cityText("stops"))
+            CityField(query, { query = it }, cityText("searchHomes"))
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(s.filterAll, cityText("remaining"), cityText("completed")).forEachIndexed { i, label -> ChoiceChip(label, filter == i, { filter = i }) }
+            }
+        }
         if (households.isEmpty()) item { EmptyState(cityText("noRecords")) }
-        items(households, key = { it.id }) { home ->
+        val visible = households.filter { home ->
+            (home.residentName.contains(query, true) || home.address.contains(query, true)) &&
+                (filter == 0 || (filter == 1 && home.id !in recorded) || (filter == 2 && home.id in recorded))
+        }
+        if (visible.isEmpty() && households.isNotEmpty()) item { EmptyState(cityText("noRecords")) }
+        items(visible, key = { it.id }) { home ->
             val log = today.firstOrNull { it.householdId == home.id }
-            CityRecord(home.residentName, home.address, if (log == null) Icons.Default.Home else Icons.Default.CheckCircle, { select(home.id) }) {
+            PersonRecord(home.residentName, home.address, { select(home.id) }) {
                 if (log == null) Icon(Icons.Default.ChevronRight, cityText("record"), tint = CityColors.primary)
                 else Icon(if (log.status == "COLLECTED") Icons.Default.CheckCircle else Icons.Default.ErrorOutline, null,
                     tint = if (log.status == "COLLECTED") CityColors.primary else CityColors.warning)
             }
         }
     }
-    if (scanner) QrScannerDialog(households, { code ->
-        scanner = false
-        viewModel.simulateQrScan(code)?.let { select(it.id) }
-    }, { scanner = false })
+    if (scanner) HouseholdScannerSheet(households, { home -> scanner = false; select(home.id) }, { scanner = false })
     households.firstOrNull { it.id == selectedId }?.let { household ->
         val existing = today.firstOrNull { it.householdId == household.id }
         CitySheet(household.residentName, { if (!op.busy) selectedId = null }) {
             Text(household.address, color = CityColors.muted)
+            TextButton({ showCode = !showCode }) { Icon(Icons.Default.QrCode2, null); Spacer(Modifier.width(8.dp)); Text(s.householdQrCode) }
+            if (showCode) HouseholdQrCard(household)
             if (existing != null) {
                 StatusBadge(if (existing.status == "COLLECTED") cityText("collected") else cityText("exceptions"), if (existing.status == "COLLECTED") "positive" else "warning")
                 Text(DemoScenario.timestamp(existing.timestamp))
@@ -99,16 +112,5 @@ fun CollectorScreen(viewModel: CityModel, households: List<HouseholdEntity>, pic
         CityRecord(s.roleCollector, "₹450", Icons.Default.Badge)
         CityRecord(s.segregationScore, "₹180", Icons.Default.Eco)
         CityRecord(cityText("completed"), "₹100", Icons.Default.CheckCircle)
-        DemoNote()
     }
 }
-@Composable
-fun QrScannerDialog(households: List<HouseholdEntity>, onScanned: (String) -> Unit, onDismiss: () -> Unit) {
-    CitySheet(cityText("simulateScan"), onDismiss) {
-        Icon(Icons.Default.QrCodeScanner, null, Modifier.size(48.dp), CityColors.primary)
-        DemoNote()
-        households.forEach { home -> CityRecord(home.qrCode, home.residentName, Icons.Default.Home, { onScanned(home.qrCode) }) { Icon(Icons.Default.ChevronRight, null) } }
-        if (households.isEmpty()) EmptyState(cityText("noRecords"))
-    }
-}
-

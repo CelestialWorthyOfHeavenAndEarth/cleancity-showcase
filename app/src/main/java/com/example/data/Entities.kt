@@ -3,6 +3,9 @@ package com.example.data
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+@Entity(tableName = "seed_markers")
+data class SeedMarkerEntity(@PrimaryKey val key: String, val appliedAt: Long = System.currentTimeMillis())
+
 @Entity(tableName = "households")
 data class HouseholdEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
@@ -48,7 +51,7 @@ data class ComplaintEntity(
     val createdAt: Long = System.currentTimeMillis(),
     val slaDeadlineMillis: Long = System.currentTimeMillis() + 86400000L, // 24 hours SLA
     val resolvedAt: Long? = null,
-    val assignedInspector: String = "Inspector R. Sharma",
+    val assignedInspector: String = CityFixtures.inspector,
     val resolutionProofPhoto: String? = null,
     val citizenPhone: String = "",
     val householdId: Int? = null

@@ -171,7 +171,7 @@ class ShowcaseRegressionTest {
         sqlite.version = 2
         sqlite.close()
         val migrated = Room.databaseBuilder(context, CleanCityDatabase::class.java, name)
-            .addMigrations(CleanCityDatabase.MIGRATION_2_3).allowMainThreadQueries().build()
+            .addMigrations(CleanCityDatabase.MIGRATION_2_3, CleanCityDatabase.MIGRATION_3_4).allowMainThreadQueries().build()
         try {
             val reports = migrated.cleanCityDao().getAllComplaints().first().associateBy { it.id }
             assertEquals(3, reports.size)

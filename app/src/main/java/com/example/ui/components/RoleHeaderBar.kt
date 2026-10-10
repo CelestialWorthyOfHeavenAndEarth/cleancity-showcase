@@ -9,9 +9,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.data.DemoScenario
+import com.example.data.HouseholdEntity
 import com.example.ui.Appearance
 import com.example.ui.UserRole
 import com.example.ui.theme.CityColors
@@ -34,32 +36,38 @@ fun roleLabel(role: UserRole): String {
 fun RoleHeaderBar(currentRole: UserRole, selectedLanguage: String, onRoleSelected: (UserRole) -> Unit,
     onLanguageSelected: (String) -> Unit, statusBanner: String? = null, onDismissBanner: () -> Unit = {},
     residentName: String? = null, onLogout: (() -> Unit)? = null, wardName: String? = null,
-    appearance: Appearance = Appearance.LIGHT, onAppearance: (Appearance) -> Unit = {}) {
+    appearance: Appearance = Appearance.LIGHT, onAppearance: (Appearance) -> Unit = {},
+    households: List<HouseholdEntity> = emptyList(), onHouseholdSelected: (Int) -> Unit = {}) {
     var rolesOpen by remember { mutableStateOf(false) }
     var accountOpen by remember { mutableStateOf(false) }
+    var homesOpen by remember { mutableStateOf(false) }
+    var query by remember { mutableStateOf("") }
     val s = appStrings()
+    val largeText = LocalDensity.current.fontScale > 1.3f
+    val roleControl: @Composable (Modifier) -> Unit = { modifier ->
+        TextButton({ rolesOpen = true }, modifier.heightIn(min = 48.dp).testTag("role_switcher_button"), contentPadding = PaddingValues(4.dp)) {
+            Text(if (currentRole == UserRole.MUNICIPAL_ADMIN) cityText("adminShort") else roleLabel(currentRole),
+                style = MaterialTheme.typography.labelMedium, maxLines = 2)
+            Icon(Icons.Default.ExpandMore, null, Modifier.size(16.dp))
+        }
+    }
     Surface(color = CityColors.canvas) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Surface(color = CityColors.forest, shape = RoundedCornerShape(12.dp)) {
-                    Icon(Icons.Default.Eco, null, Modifier.padding(9.dp).size(22.dp), CityColors.lime)
+        Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Surface(color = CityColors.forest, shape = RoundedCornerShape(14.dp)) {
+                    Icon(Icons.Default.Eco, null, Modifier.padding(10.dp).size(22.dp), CityColors.lime)
                 }
                 Column(Modifier.weight(1f)) {
-                    Text("CleanCity", style = MaterialTheme.typography.titleLarge)
-                    Text(wardName ?: DemoScenario.ward, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
+                    Text("CleanCity", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text((wardName ?: DemoScenario.ward).substringBefore(" -"), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.labelSmall, color = CityColors.muted)
                 }
-                IconButton(onClick = { accountOpen = true }, Modifier.testTag("account_preferences")) {
-                    Icon(Icons.Default.Tune, cityText("account"))
+                if (!largeText) roleControl(Modifier.widthIn(max = 116.dp))
+                IconButton({ accountOpen = true }, Modifier.testTag("account_preferences").size(48.dp)) {
+                    Icon(Icons.Default.Tune, cityText("account"), Modifier.size(22.dp))
                 }
             }
-            TextButton(onClick = { rolesOpen = true }, modifier = Modifier.heightIn(min = 48.dp).testTag("role_switcher_button"),
-                contentPadding = PaddingValues(horizontal = 0.dp)) {
-                Text(roleLabel(currentRole), style = MaterialTheme.typography.labelLarge)
-                Icon(Icons.Default.ExpandMore, null, Modifier.padding(start = 4.dp).size(20.dp))
-                Spacer(Modifier.weight(1f))
-                Text(cityText("demo"), style = MaterialTheme.typography.labelMedium, color = CityColors.muted)
-            }
+            if (largeText) roleControl(Modifier)
         }
     }
     if (rolesOpen) CitySheet(s.switchPerspective, { rolesOpen = false }) {
@@ -71,10 +79,11 @@ fun RoleHeaderBar(currentRole: UserRole, selectedLanguage: String, onRoleSelecte
                 if (role == currentRole) Icon(Icons.Default.CheckCircle, null, tint = CityColors.primary)
             }
         }
-        DemoNote()
     }
     if (accountOpen) CitySheet(cityText("account"), { accountOpen = false }) {
         if (!residentName.isNullOrBlank()) Text(residentName, style = MaterialTheme.typography.titleLarge)
+        if (households.isNotEmpty()) CityRecord(cityText("switchHome"), households.size.toString() + " · " + cityText("households"), Icons.Default.Home,
+            { accountOpen = false; homesOpen = true }) { Icon(Icons.Default.ChevronRight, null) }
         SectionTitle(cityText("appearance"))
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Appearance.entries.forEach { value -> ChoiceChip(cityText(value.name.lowercase()), appearance == value, { onAppearance(value) }) }
@@ -83,8 +92,17 @@ fun RoleHeaderBar(currentRole: UserRole, selectedLanguage: String, onRoleSelecte
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             DemoScenario.languages.forEach { lang -> ChoiceChip(com.example.util.getAppStrings(lang).languageName, selectedLanguage == lang, { onLanguageSelected(lang) }) }
         }
-        DemoNote()
         if (onLogout != null) OutlinedButton(onClick = { accountOpen = false; onLogout() }, Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("btn_logout")) { Text(s.logout) }
     }
+    if (homesOpen) CitySheet(cityText("switchHome"), { homesOpen = false }) {
+        CityField(query, { query = it }, cityText("searchHomes"))
+        households.filter { it.residentName.contains(query, true) || it.address.contains(query, true) }.forEach { home ->
+            PersonRecord(home.residentName, home.ward.substringBefore(","), { onHouseholdSelected(home.id); homesOpen = false }) {
+                if (home.residentName == residentName) Icon(Icons.Default.CheckCircle, null, tint = CityColors.primary)
+                else Icon(Icons.Default.ChevronRight, null)
+            }
+        }
+    }
+
 }
 

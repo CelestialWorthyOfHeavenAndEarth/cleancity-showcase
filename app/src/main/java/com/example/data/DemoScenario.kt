@@ -13,7 +13,7 @@ object DemoScenario {
     const val otp = "482910"
     val languages = listOf("English", "Telugu", "Hindi", "Kannada", "Tamil", "Malayalam", "Marathi", "Bengali", "Gujarati")
     fun household() = HouseholdEntity(
-        id = 1, qrCode = "BIN-JH-101", residentName = "Mahesh babu", phone = "+91 98765 10101",
+        id = 1, qrCode = "BIN-JH-101", residentName = "Mahesh Babu", phone = "+91 98765 10101",
         address = address, ward = ward, category = "Household",
         segregationScore = 96, streakDays = 14, monthlyFee = 90.0, feeStatus = "DUE"
     )

@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.unit.dp
 import com.example.ui.theme.CityColors
 import com.example.util.cityText
@@ -23,7 +23,7 @@ import com.example.util.cityText
 fun NeighborhoodArt(modifier: Modifier = Modifier) {
     Canvas(modifier.fillMaxWidth().aspectRatio(2f)) {
         val k = minOf(size.width / 360f, size.height / 180f)
-        scale(k, k, Offset.Zero) {
+        withTransform({ translate((size.width - 360f * k) / 2, (size.height - 180f * k) / 2); scale(k, k, Offset.Zero) }) {
             val cream = Color(0xFFF1F2D6); val mint = Color(0xFF87B996); val dark = Color(0xFF0B3526)
             drawCircle(Color(0xFFDCEAA7), 32f, Offset(294f, 42f))
             drawRoundRect(Color(0xFF286347), Offset(0f, 117f), Size(360f, 55f), CornerRadius(22f))
@@ -76,7 +76,7 @@ fun RouteIllustration(completed: Int = 0, total: Int = 4) {
             val route = Path().apply { moveTo(size.width*.08f,size.height*.72f); cubicTo(size.width*.45f,size.height*.9f,size.width*.35f,size.height*.18f,size.width*.64f,size.height*.27f); lineTo(size.width*.91f,size.height*.27f) }
             drawPath(route, road, style = Stroke(18.dp.toPx(), cap = StrokeCap.Round))
             drawPath(route, forest.copy(alpha=.65f), style = Stroke(3.dp.toPx(), cap = StrokeCap.Round))
-            for (i in 0 until total.coerceAtMost(6)) {
+            for (i in 0 until total.coerceAtMost(12)) {
                 val fraction = i.toFloat()/maxOf(total-1,1)
                 val pt = Offset(size.width*(.08f+.83f*fraction),size.height*(.72f-.45f*fraction))
                 drawCircle(road, 10.dp.toPx(), pt)

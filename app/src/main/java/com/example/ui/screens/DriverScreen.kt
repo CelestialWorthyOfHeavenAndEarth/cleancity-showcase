@@ -32,23 +32,23 @@ fun DriverScreen(viewModel: CityModel, weighbridgeLogs: List<WeighbridgeLogEntit
     var plant by rememberSaveable { mutableStateOf("City recovery centre") }
     var waste by rememberSaveable { mutableIntStateOf(0) }
     var attempted by rememberSaveable { mutableStateOf(false) }
-    val locations = listOf("Road 10 · Community entrance", "Road 12 · Neighborhood park", "Road 36 · Market square", "Road 45 · Transit stop")
-    CityPage(cityText("vehicle"), "Manjunath · " + DemoScenario.vehicle, modifier) {
+    val locations = CityFixtures.routeStops
+    CityPage(cityText("vehicle"), CityFixtures.driver + " · " + DemoScenario.vehicle, modifier) {
         item { AdaptiveColumns(primary = {
             CityPanel(color = CityColors.positiveBg) {
                 Icon(Icons.Default.LocalShipping, null, Modifier.size(32.dp), CityColors.primary)
                 Text(DemoScenario.vehicle, style = MaterialTheme.typography.headlineLarge)
                 Text(DemoScenario.ward, color = CityColors.muted)
-                ProgressLine(stops.size / 4f)
+                ProgressLine(stops.size.toFloat() / locations.size)
                 Text(stops.size.toString() + " / 4 · " + cityText("completed"))
                 CityButton(cityText("weights"), { viewModel.clearOperation(); attempted = false; showWeight = true }, icon = Icons.Default.Scale)
                 OutlinedButton({ showSos = true }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                     Icon(Icons.Default.WarningAmber, null); Spacer(Modifier.width(8.dp)); Text(if ("sos" in notices) cityText("demoRecorded") else cityText("sos"))
                 }
             }
-        }, secondary = { RouteIllustration(stops.size, 4) }) }
+        }, secondary = { RouteIllustration(stops.size, locations.size) }) }
         item { SectionTitle(cityText("stops")) }
-        items(4) { index ->
+        items(locations.size) { index ->
             CityRecord(locations[index], "1100 L · " + if (index % 2 == 0) s.wetWaste else s.dryWaste, Icons.Default.DeleteOutline) {
                 IconButton({ viewModel.completeDriverStop(index) }, enabled = index !in stops) {
                     Icon(if (index in stops) Icons.Default.CheckCircle else Icons.Default.AddCircleOutline,
@@ -65,7 +65,7 @@ fun DriverScreen(viewModel: CityModel, weighbridgeLogs: List<WeighbridgeLogEntit
     if (showSos) CitySheet(cityText("sos"), { showSos = false }) {
         Text(DemoScenario.vehicle, style = MaterialTheme.typography.headlineMedium)
         Text(DemoScenario.ward)
-        DemoNote()
+        ContextNote(cityText("issueHint"))
         CityButton(cityText("confirm"), { viewModel.acknowledgeDemo("sos"); showSos = false })
     }
     if (showWeight) CitySheet(cityText("weights"), { if (!op.busy) showWeight = false }) {
@@ -84,7 +84,7 @@ fun DriverScreen(viewModel: CityModel, weighbridgeLogs: List<WeighbridgeLogEntit
         OperationFeedback(viewModel, "weight") { showWeight = false; gross = ""; tare = "" }
         CityButton(cityText("record"), {
             attempted = true
-            if (valid) viewModel.submitWeighbridgeEntry(vehicle, "Manjunath", listOf("Wet waste", "Dry recyclable", "Hazardous")[waste], grossValue!!, tareValue!!, plant)
+            if (valid) viewModel.submitWeighbridgeEntry(vehicle, CityFixtures.driver, listOf("Wet waste", "Dry recyclable", "Hazardous")[waste], grossValue!!, tareValue!!, plant)
         }, loading = op.busy)
     }
 }

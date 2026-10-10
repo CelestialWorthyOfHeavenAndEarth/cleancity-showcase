@@ -31,13 +31,13 @@ class CleanCityRepository(private val dao: CleanCityDao) {
             segregationQuality = quality, reasonNotCollected = reasonNotCollected, notes = notes), start, end)
     }
     suspend fun submitComplaint(title: String, category: String, description: String, ward: String, address: String,
-        latitude: Double, longitude: Double, photoUri: String? = null, citizenPhone: String = "+91 98765 43210", householdId: Int? = null): Long {
+        latitude: Double, longitude: Double, photoUri: String? = null, citizenPhone: String = "", householdId: Int? = null): Long {
         require(title.isNotBlank() && description.isNotBlank() && address.isNotBlank())
         require(latitude.isFinite() && latitude in -90.0..90.0 && longitude.isFinite() && longitude in -180.0..180.0)
         return dao.insertComplaint(ComplaintEntity(title = title.trim().take(150), category = category,
             description = description.trim().take(1000), ward = ward, address = address.trim().take(200), latitude = latitude,
             longitude = longitude, photoUri = photoUri, status = "OPEN", citizenPhone = citizenPhone, householdId = householdId,
-            assignedInspector = "Inspector R. Sharma"))
+            assignedInspector = CityFixtures.inspector))
     }
     suspend fun updateWasteReportStatus(id: Int, status: String) {
         require(status in listOf("OPEN", "IN_PROGRESS", "ESCALATED", "RESOLVED"))
@@ -50,7 +50,7 @@ class CleanCityRepository(private val dao: CleanCityDao) {
         val household = requireNotNull(dao.householdNow(householdId))
         require(kotlin.math.abs(household.monthlyFee - amount) < 0.01)
         return dao.payOnce(PaymentEntity(householdId = householdId, monthYear = monthYear, amount = amount,
-            upiRef = upiRef, receiptNumber = "CC-DEMO-" + UUID.randomUUID().toString().take(8).uppercase()))
+            upiRef = upiRef, receiptNumber = "CC-" + UUID.randomUUID().toString().take(8).uppercase()))
     }
     suspend fun logWeighbridge(vehicleNumber: String, driverName: String, wasteType: String, grossKg: Double, tareKg: Double, plant: String): Long {
         require(vehicleNumber.isNotBlank() && driverName.isNotBlank() && plant.isNotBlank())

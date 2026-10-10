@@ -37,7 +37,7 @@ import com.example.util.cityText
 @Composable
 fun ScreenHeading(title: String, subtitle: String = "", modifier: Modifier = Modifier) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text(title, style = MaterialTheme.typography.headlineLarge, color = CityColors.ink, modifier = Modifier.semantics { heading() })
+        Text(title, style = MaterialTheme.typography.headlineMedium, color = CityColors.ink, modifier = Modifier.semantics { heading() })
         if (subtitle.isNotBlank()) Text(subtitle, style = MaterialTheme.typography.bodyMedium, color = CityColors.muted)
     }
 }
@@ -179,7 +179,7 @@ fun EmptyState(title: String, icon: ImageVector = Icons.Default.Spa, modifier: M
     }
 }
 @Composable
-fun DemoNote(text: String = cityText("demoNotice")) {
+fun ContextNote(text: String) {
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
         Icon(Icons.Default.Info, null, Modifier.size(18.dp), CityColors.muted)
         Text(text, style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
@@ -225,5 +225,27 @@ fun ProgressLine(progress: Float) {
     val animated by animateFloatAsState(progress.coerceIn(0f, 1f), tween(220), label = "Progress")
     LinearProgressIndicator(progress = { animated }, modifier = Modifier.fillMaxWidth().height(8.dp),
         color = CityColors.primary, trackColor = CityColors.soft)
+}
+
+@Composable
+fun PersonRecord(name: String, detail: String, onClick: (() -> Unit)? = null, trailing: @Composable () -> Unit = {}) {
+    val content: @Composable () -> Unit = {
+        Row(Modifier.fillMaxWidth().padding(vertical = 14.dp), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            Surface(color = CityColors.positiveBg, shape = RoundedCornerShape(16.dp)) {
+                Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                    Text(name.split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1) },
+                        style = MaterialTheme.typography.titleMedium, color = CityColors.primary)
+                }
+            }
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
+                Text(name, style = MaterialTheme.typography.titleMedium, color = CityColors.ink)
+                Text(detail, style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
+            }
+            trailing()
+        }
+    }
+    if (onClick == null) content() else Surface(onClick = onClick, color = Color.Transparent, shape = RoundedCornerShape(16.dp)) { content() }
+    HorizontalDivider(color = CityColors.line)
 }
 

@@ -222,8 +222,8 @@ class GeminiService(private val useNetwork: Boolean = false) {
             message == strings.promptPayFee || listOf("fee", "bill", "pay", "charge").any { it in q } ->
                 strings.catResidential + ": ₹90\n" + strings.catCommercial + ": ₹350\n" + strings.catHotel + ": ₹850\n\n" + com.example.util.showcaseText(language, "demoPayment")
             message == strings.promptHomeCompost || "compost" in q -> com.example.util.showcaseText(language, "compostHelp")
-            listOf("report", "photo", "dump", "trash").any { it in q } -> com.example.util.showcaseText(language, "reportIntro") + "\n" + com.example.util.showcaseText(language, "demoNotice")
-            else -> strings.aiAssistantSubtitle + "\n\n" + strings.promptPickupTimes + "\n" + strings.promptSegregation + "\n" + strings.promptPayFee + "\n" + strings.promptHomeCompost
+            listOf("report", "photo", "dump", "trash").any { it in q } -> com.example.util.showcaseText(language, "reportIntro")
+            else -> com.example.util.showcaseText(language, "assistantIntro") + "\n\n" + strings.promptPickupTimes + "\n" + strings.promptSegregation + "\n" + strings.promptPayFee + "\n" + strings.promptHomeCompost
         }
     }
 

@@ -71,3 +71,7 @@ Native Compose app with eight screen source files, Room version 2, nine locale b
 ## Implementation handoff (2026-10-10)
 
 The five-role showcase, shared visual system, connected local journeys, and Room version 3 migration are implemented. See [UI_CHANGES.md](UI_CHANGES.md) for the delivered screen coverage, executed checks, limitations, and simulator checklist, and [README.md](README.md) for the connected demo walkthrough and build instructions. This baseline section records the original audit; current verification is maintained in the handoff.
+
+## Follow-up revision (2026-10-10)
+
+The subsequent user request supersedes the simulated-scanner and repeated demonstration-badge requirements above. The app now uses real household QR encoding, camera/image decoding and sharing; a larger fictional TFI cast dataset; concise product wording; and searchable household switching. Room version 4 enriches prior installations without deleting saved records. Payment and communication controls describe their actual on-device effects. Current verification and the presentation walkthrough are maintained in UI_CHANGES.md and README.md.

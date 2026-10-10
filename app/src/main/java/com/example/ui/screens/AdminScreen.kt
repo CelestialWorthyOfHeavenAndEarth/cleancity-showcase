@@ -4,12 +4,15 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -22,6 +25,8 @@ import com.example.util.*
 @Composable
 fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violations: List<ViolationFineEntity>, modifier: Modifier = Modifier) {
     val s = appStrings()
+    val clipboard = LocalClipboardManager.current
+    var showTransactions by rememberSaveable { mutableStateOf(false) }
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var fineOpen by rememberSaveable { mutableStateOf(false) }
     var reminderId by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -47,7 +52,7 @@ fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violati
                 0 -> CityPage(s.roleAdmin, DemoScenario.date()) {
                     item { AdaptiveColumns(primary = {
                         CityPanel(color = CityColors.positiveBg) {
-                            StatusBadge(cityText("demo"))
+                            StatusBadge(cityText("today"))
                             Text("%.0f%%".format(stats.coveragePercent), style = MaterialTheme.typography.displayLarge)
                             Text(cityText("coverage"), style = MaterialTheme.typography.titleMedium)
                             ProgressLine((stats.coveragePercent / 100).toFloat())
@@ -57,7 +62,6 @@ fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violati
                     }, secondary = {
                         CityPanel {
                             SectionTitle(cityText("brief"))
-                            DemoNote(cityText("offline"))
                             if (brief != null) Text(brief!!, style = MaterialTheme.typography.bodyMedium)
                             else Text(s.roleAdminSubtitle, color = CityColors.muted)
                             CityButton(cityText("brief"), viewModel::generateExecutiveSummary, loading = busyBrief, icon = Icons.Default.AutoAwesome)
@@ -80,16 +84,30 @@ fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violati
                         }
                     }
                 }
-                2 -> CityPage(cityText("finance"), cityText("demoPayment")) {
+                2 -> CityPage(cityText("finance"), DemoScenario.period()) {
                     item {
                         val received = payments.filter { it.monthYear == DemoScenario.period() }.distinctBy { it.householdId }.sumOf { it.amount }
                         MetricPair(DemoScenario.money(received), cityText("recovery"), DemoScenario.money(households.filter { it.feeStatus != "PAID" }.sumOf { it.monthlyFee }), s.currentOutstanding)
                     }
+                    item {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            ChoiceChip(s.due, !showTransactions, { showTransactions = false })
+                            ChoiceChip(cityText("transactions"), showTransactions, { showTransactions = true })
+                        }
+                    }
+                    if (showTransactions) {
+                        items(payments, key = { "payment-" + it.id }) { payment ->
+                            CityRecord(households.firstOrNull { it.id == payment.householdId }?.residentName.orEmpty(),
+                                payment.monthYear + " · " + payment.receiptNumber, Icons.AutoMirrored.Filled.ReceiptLong) {
+                                Text(DemoScenario.money(payment.amount), style = MaterialTheme.typography.labelLarge)
+                            }
+                        }
+                    }
                     val due = households.filter { it.feeStatus != "PAID" }
-                    if (due.isEmpty()) item { EmptyState(s.paid, Icons.Default.CheckCircle) }
-                    items(due, key = { it.id }) { home ->
+                    if (!showTransactions && due.isEmpty()) item { EmptyState(s.paid, Icons.Default.CheckCircle) }
+                    items(if (showTransactions) emptyList() else due, key = { it.id }) { home ->
                         CityPanel {
-                            CityRecord(home.residentName, home.address, Icons.Default.Home)
+                            PersonRecord(home.residentName, home.address)
                             Text(DemoScenario.money(home.monthlyFee), style = MaterialTheme.typography.titleLarge)
                             OutlinedButton({ reminderId = home.id }, Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
                                 Text(if ("reminder-" + home.id in notices) cityText("demoRecorded") else cityText("reminder"))
@@ -117,8 +135,11 @@ fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violati
             Text(home.residentName, style = MaterialTheme.typography.titleLarge)
             Text(home.phone)
             Text(s.monthlyFee + " · " + DemoScenario.money(home.monthlyFee))
-            DemoNote()
-            CityButton(cityText("confirm"), { viewModel.acknowledgeDemo("reminder-" + home.id); reminderId = null })
+            val reminderText = home.residentName + " · " + s.monthlyFee + ": " + DemoScenario.money(home.monthlyFee) + " · " + DemoScenario.period()
+            CityPanel { Text(reminderText) }
+            CityButton(cityText("copyReminder"), {
+                clipboard.setText(AnnotatedString(reminderText)); viewModel.acknowledgeDemo("reminder-" + home.id); reminderId = null
+            }, icon = Icons.Default.ContentCopy)
         }
     }
     if (fineOpen) CitySheet(cityText("fines"), { if (!op.busy) fineOpen = false }) {
@@ -129,7 +150,6 @@ fun AdminScreen(viewModel: CityModel, households: List<HouseholdEntity>, violati
         CityField(violationType, { violationType = it.take(100) }, s.wasteCategoryTitle, error = attempted && violationType.isBlank())
         CityField(amount, { amount = it.take(12) }, cityText("amount"), keyboard = KeyboardType.Decimal, error = attempted && !valid)
         if (attempted && !valid) Text(cityText("checkFields"), color = CityColors.error)
-        DemoNote()
         OperationFeedback(viewModel, "fine") { fineOpen = false; violator = ""; location = ""; violationType = ""; amount = "" }
         CityButton(cityText("record"), {
             attempted = true

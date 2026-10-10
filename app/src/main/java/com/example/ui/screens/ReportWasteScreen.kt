@@ -118,7 +118,7 @@ fun ReportWasteScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, m
                             if (granted) fetchLocation() else locationPermission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
                         }, enabled = !mediaBusy && !op.busy) { Icon(Icons.Default.MyLocation, null); Spacer(Modifier.width(8.dp)); Text(s.refreshLocation) }
                         TextButton({
-                            address = DemoScenario.address; latitude = DemoScenario.latitude; longitude = DemoScenario.longitude; error = null
+                            address = viewModel.registeredHousehold.value?.address.orEmpty(); latitude = 0.0; longitude = 0.0; error = null
                         }, enabled = !op.busy) { Text(cityText("useSample")) }
                     }
                     if (mediaBusy) LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -155,10 +155,10 @@ fun ReportWasteScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, m
 }
 @Composable
 fun reportStatus(status: String): String = when(status) {
-    "RESOLVED" -> appStrings().statusResolved
-    "IN_PROGRESS" -> appStrings().statusInProgress
+    "RESOLVED" -> cityText("reportResolved")
+    "IN_PROGRESS" -> cityText("reportProgress")
     "ESCALATED" -> cityText("escalated")
-    else -> appStrings().statusPending
+    else -> cityText("reportOpen")
 }
 @Composable
 fun WasteReportCard(report: ComplaintEntity, onResolve: () -> Unit) {
@@ -177,27 +177,47 @@ fun WasteReportCard(report: ComplaintEntity, onResolve: () -> Unit) {
 fun ReportDetailSheet(report: ComplaintEntity, onDismiss: () -> Unit, viewModel: CityModel, citizen: Boolean = false) {
     val s = appStrings()
     val op by viewModel.operation.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var note by rememberSaveable(report.id) { mutableStateOf("") }
+    var proofPath by rememberSaveable(report.id) { mutableStateOf<String?>(null) }
+    var proofBusy by remember { mutableStateOf(false) }
+    var proofError by remember { mutableStateOf(false) }
+    val proofPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) scope.launch {
+            proofBusy = true
+            proofPath = withContext(Dispatchers.IO) { FileStorageHelper.copyUriToInternal(context, uri) }
+            proofBusy = false; proofError = proofPath == null
+        }
+    }
     CitySheet("#" + report.id + " · " + reportStatus(report.status), { if (!op.busy) onDismiss() }) {
         Text(report.title, style = MaterialTheme.typography.headlineMedium)
         Text(report.description)
         report.photoUri?.takeIf { File(it).exists() }?.let { AsyncImage(File(it), s.photoEvidenceTitle, Modifier.fillMaxWidth().height(200.dp), contentScale = ContentScale.Crop) }
         CityRecord(report.address, report.ward, Icons.Default.Place)
-        CityRecord(s.statusPending, DemoScenario.timestamp(report.createdAt), Icons.Default.Schedule)
+        CityRecord(cityText("reportOpen"), DemoScenario.timestamp(report.createdAt), Icons.Default.Schedule)
         if (report.status == "RESOLVED") {
-            CityRecord(s.statusResolved, report.resolvedAt?.let(DemoScenario::timestamp).orEmpty(), Icons.Default.CheckCircle)
+            CityRecord(cityText("reportResolved"), report.resolvedAt?.let(DemoScenario::timestamp).orEmpty(), Icons.Default.CheckCircle)
             val proof = report.resolutionProofPhoto
             if (proof != null && !proof.startsWith("demo:") && File(proof).isFile) {
                 AsyncImage(File(proof), s.photoEvidenceTitle, Modifier.fillMaxWidth().height(180.dp), contentScale = ContentScale.Crop)
-            } else DemoNote(cityText("sampleProof"))
+            } else if (proof?.startsWith("note:") == true) ContextNote(proof.removePrefix("note:"))
+            else ContextNote(cityText("sampleProof"))
         } else {
             CityRecord(cityText("sla"), DemoScenario.timestamp(report.slaDeadlineMillis), Icons.Default.Timer)
             if (!citizen) {
-                DemoNote(cityText("sampleProof"))
+                CityField(note, { note = it.take(1000) }, cityText("inspectNote"), multiline = true)
+                OutlinedButton({ proofPicker.launch("image/*") }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !proofBusy && !op.busy) {
+                    Icon(Icons.Default.AddAPhoto, null); Spacer(Modifier.width(8.dp)); Text(cityText("addProof"))
+                }
+                proofPath?.let { AsyncImage(File(it), cityText("addProof"), Modifier.fillMaxWidth().height(140.dp), contentScale = ContentScale.Crop) }
+                if (proofBusy) LinearProgressIndicator(Modifier.fillMaxWidth())
+                if (proofError) Text(cityText("photoError"), color = CityColors.error)
                 OperationFeedback(viewModel, "escalate") { onDismiss() }
                 OutlinedButton({ viewModel.escalateComplaint(report.id) }, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = !op.busy && report.status != "ESCALATED") { Text(cityText("escalate")) }
             }
             OperationFeedback(viewModel, "resolve") { onDismiss() }
-            CityButton(s.markResolved, { if (citizen) viewModel.markWasteReportResolved(report.id) else viewModel.resolveComplaint(report.id) }, loading = op.busy)
+            CityButton(s.markResolved, { if (citizen) viewModel.markWasteReportResolved(report.id) else viewModel.resolveComplaint(report.id, proofPath ?: ("note:" + note.trim())) }, loading = op.busy || proofBusy, enabled = citizen || proofPath != null || note.trim().length >= 5)
         }
     }
 }

@@ -41,6 +41,7 @@ interface CityModel {
     fun initialize()
     fun clearOperation()
     fun consumeOperation(key: String)
+    fun selectHousehold(id: Int)
     fun setRole(role: UserRole)
     fun setLanguage(language: String)
     fun setAppearance(value: Appearance)
@@ -54,9 +55,9 @@ interface CityModel {
     fun markWasteReportResolved(id: Int)
     fun payMonthlyFee(householdId: Int, amount: Double)
     fun markCollection(household: HouseholdEntity, status: String, quality: String, reason: String? = null)
-    fun simulateQrScan(qrCode: String): HouseholdEntity?
+    fun findHouseholdByQr(qrCode: String): HouseholdEntity?
     fun submitWeighbridgeEntry(vehicleNo: String, driver: String, wasteType: String, grossKg: Double, tareKg: Double, plant: String)
-    fun resolveComplaint(complaintId: Int, proofPhoto: String? = "demo:inspection")
+    fun resolveComplaint(complaintId: Int, proofPhoto: String? = null)
     fun escalateComplaint(complaintId: Int)
     fun toggleCrewPpe(member: CrewAttendanceEntity)
     fun issueSpotFine(violator: String, location: String, type: String, amount: Double)

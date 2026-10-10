@@ -19,10 +19,12 @@ import com.example.ui.components.*
 import com.example.ui.theme.CityColors
 import com.example.util.*
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SupervisorScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, crew: List<CrewAttendanceEntity>, modifier: Modifier = Modifier) {
     val s = appStrings()
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    var statusFilter by rememberSaveable { mutableStateOf("ALL") }
     var selectedId by rememberSaveable { mutableStateOf<Int?>(null) }
     val holder = rememberSaveableStateHolder()
     val op by viewModel.operation.collectAsStateWithLifecycle()
@@ -38,13 +40,20 @@ fun SupervisorScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, cr
                             crew.count { it.ppeChecked }.toString() + "/" + crew.size, cityText("safety"))
                         CityButton(cityText("reports"), { tab = 1 }, icon = Icons.AutoMirrored.Filled.Assignment)
                     }) }
-                    if ("sos" in notices) item { CityPanel(color = CityColors.warningBg) { Text(cityText("sos"), style = MaterialTheme.typography.titleMedium); Text(DemoScenario.vehicle); DemoNote(cityText("demoRecorded")) } }
+                    if ("sos" in notices) item { CityPanel(color = CityColors.warningBg) { Text(cityText("sos"), style = MaterialTheme.typography.titleMedium); Text(DemoScenario.vehicle); ContextNote(cityText("demoRecorded")) } }
                     item { SectionTitle(cityText("crew")) }
-                    items(crew, key = { it.id }) { member -> CityRecord(member.workerName, member.role + " · " + member.checkInTime, Icons.Default.Badge) }
+                    items(crew, key = { it.id }) { member -> PersonRecord(member.workerName, member.role + " · " + member.checkInTime) }
                 }
                 1 -> CityPage(cityText("reports"), cityText("sla") + " · 24 h") {
+                    item {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            listOf("ALL", "OPEN", "IN_PROGRESS", "ESCALATED", "RESOLVED").forEach { status ->
+                                ChoiceChip(if (status == "ALL") s.filterAll else reportStatus(status), statusFilter == status, { statusFilter = status })
+                            }
+                        }
+                    }
                     if (complaints.isEmpty()) item { EmptyState(s.noReports) }
-                    items(complaints.sortedWith(compareBy<ComplaintEntity> { it.status == "RESOLVED" }.thenBy { it.slaDeadlineMillis }), key = { it.id }) { report ->
+                    items(complaints.filter { statusFilter == "ALL" || it.status == statusFilter }.sortedWith(compareBy<ComplaintEntity> { it.status == "RESOLVED" }.thenBy { it.slaDeadlineMillis }), key = { it.id }) { report ->
                         WasteReportCard(report) { viewModel.clearOperation(); selectedId = report.id }
                     }
                 }
@@ -52,8 +61,8 @@ fun SupervisorScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, cr
                     item { OperationFeedback(viewModel, "ppe") }
                     if (crew.isEmpty()) item { EmptyState(cityText("noRecords")) }
                     items(crew, key = { it.id }) { member ->
-                        CityPanel {
-                            CityRecord(member.workerName, member.role + " · " + member.checkInTime, Icons.Default.Badge)
+                        Column {
+                            PersonRecord(member.workerName, member.role + " · " + member.checkInTime)
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                                 Text(cityText("safety"), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
                                 Switch(member.ppeChecked, { viewModel.toggleCrewPpe(member) }, enabled = !op.busy)

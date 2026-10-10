@@ -1,43 +1,51 @@
-# CleanCity — Android showcase
+# CleanCity
 
-A complete local showcase for citizen, collector, driver, supervisor, and municipal admin journeys, built with Kotlin, Jetpack Compose, Material 3, a shared ViewModel, and Room. The visual system uses warm ivory, forest green, soft lime, Plus Jakarta Sans, and native illustrated neighborhood, vehicle, bin, and route scenes.
+A native Android app for household waste collection, reporting, sorting, payments and municipal operations. Built with Kotlin, Jetpack Compose, Material 3 and Room, with a warm ivory/forest identity, dark appearance and nine languages.
 
-## Start the demo
+## Get started
 
-Choose **Explore demo** on the welcome screen. This opens the Jubilee Hills household in Ward 104. The visible role control switches between all five roles; the account control provides nine languages, Light/Dark/System appearance, and sign-out. Light is the initial appearance. Login, registration, and staff entry remain available as demonstrations; the displayed sample OTP can be filled automatically.
+Choose **Get started** to open Mahesh Babu's household. Use the role control in the header to move between Citizen, Collector, Driver, Supervisor and Admin. Preferences lets you choose another household, change language or appearance, and sign out.
 
-The showcase runs without a service key. Authentication, payments, tag scanning, routes, reminders, dispatch, and emergency acknowledgments are explicitly simulated. No money is transferred and no SMS or emergency call is sent.
+The presentation dataset uses **fictional records with TFI actor names**. Names are used as a memorable cast; addresses, financial records, crew assignments and activities do not describe the real people or imply endorsement. Fine records use invented establishment names.
 
-## Connected walkthrough
+## Included data
 
-1. **Citizen → Report:** enter a description and editable address, or select the sample location. Submit and open My reports.
-2. **Supervisor → Reports:** open that report, inspect it, select an image or the clearly labeled sample proof, then resolve it. Return to Citizen to see the resolved history.
-3. **Citizen → Bills:** confirm a demo payment and choose View receipt. The household disappears from the admin's unpaid list.
-4. **Collector:** simulate a scan, select `BIN-JH-101`, and save a collected, mixed-waste, or not-collected result. Citizen pickup status and score update from the same records. A second submission for the same stop/day cannot inflate the score.
-5. **Driver:** complete route stops, record a valid weighbridge entry, and acknowledge the demo SOS. The route survives role switching; the supervisor sees the acknowledgment.
-6. **Municipal admin:** compare ward metrics, generate a local commissioner brief, preview a reminder, and create a validated sample fine.
+A fresh installation includes 24 households across three wards, 350 pickup records across 15 days, 128 payments across six months, 30 reports across four statuses, 12 crew members, 18 weighbridge entries, nine fines, six announcements and eight route stops. Existing installations receive the additional records once, preserving saved edits and transactions.
 
-Room records persist across launches. Appearance and language are stored locally. Driver stop completion and simulated acknowledgments are saved with the current Android demo session. Existing version 2 databases migrate to version 3 without deleting records.
+## QR workflow
 
-## Build and review
+1. In Citizen, open **Household QR Code**. Each household has a real encoded QR image and readable ID.
+2. Use **Share QR tag** to export a PNG, or open the printable [household tag sheet](docs/household-tags/index.html).
+3. Switch to Collector and select **Scan household QR**.
+4. Open the camera to scan a printed tag or another screen, or choose **Read QR from image** to read a saved PNG.
+5. The decoded ID opens that household's collection form. If the camera is unavailable, enter the household ID directly.
 
-The project uses Android SDK 36.1 and the checked-in Gradle 9.3.1 wrapper. The available Windows JDK 22 and SDK were used for verification. Set `JAVA_HOME` and `ANDROID_HOME` to your installed tools if needed, or open the project in Android Studio.
+QR encoding and decoding use [ZXing](https://github.com/zxing/zxing); camera scanning uses [ZXing Android Embedded](https://github.com/journeyapps/zxing-android-embedded). No scanner app, cloud decoder, service key or downloaded recognition model is required.
+
+## Connected presentation walkthrough
+
+- **Collector → Citizen:** search for Mahesh Babu, scan his QR or open his stop, then record the collection quality. Citizen status, score and collection history update. Repeating today's collection does not inflate scores.
+- **Citizen → Supervisor:** create a report with a photo and address. Filter the supervisor queue by status, add an inspection photo or note, and resolve it. Citizen history reflects the result.
+- **Citizen → Admin:** record a bill payment and view its receipt. The admin's outstanding balance and transaction list update. Recording changes the ledger; it does not transfer money.
+- **Driver → Supervisor:** complete route stops, enter a weighbridge slip, or report a vehicle issue. Progress is retained across role switches and the issue appears in the supervisor view.
+- **Admin:** compare three wards, review six months of payments, copy a payment reminder, create a fine and generate a commissioner brief from the same dashboard metrics.
+
+Search and status filters keep the larger lists manageable. Citizen drafts and navigation are saved separately for each selected household. Room records and appearance/language preferences persist; route completion and acknowledgments are held in the saved session.
+
+## Build
+
+Use the checked-in Gradle 9.3.1 wrapper and Android SDK 36.1. This workspace was built with JDK 22.
 
 ```powershell
 .\gradlew.bat :app:testDebugUnitTest :app:assembleDebug
 ```
 
-The locally generated package is `CleanCity-Showcase-debug.apk`, also available after a build at `app/build/outputs/apk/debug/app-debug.apk`. Generated APKs and local credentials are excluded from Git. The final offline build and all 26 tests passed; see the handoff for verification details. The older root-level `CleanCity.apk` is a legacy artifact and was not replaced.
+The package is generated at `app/build/outputs/apk/debug/app-debug.apk`. Local `.env` files, signing credentials, APKs and build caches are excluded from Git. `CleanCity-Showcase-debug.apk` is the local handoff copy.
 
-`app/src/debug/java/com/example/ui/DesignPreviews.kt` contains 44 Compose preview configurations covering major screens and interface states in light, dark, wide, and enlarged-text variants. Host-rendered images are produced by `ShowcaseRenderTest` in `app/build/showcase-renders/`; these do not represent an installed APK or device test.
+`DesignPreviews.kt` supplies light/dark, phone, wide and large-text configurations. Host renders are written to `app/build/showcase-renders/`; QR tests produce `app/build/household-tags/`. These checks do not replace testing camera permissions, hardware scanning and platform interactions on a device.
 
-## Optional network assistant
+## Integration boundaries
 
-`GeminiService` defaults to deterministic, localized offline answers and summaries. The existing optional network implementation remains behind the same interface. Enabling it requires an explicit code opt-in (`GeminiService(useNetwork = true)`), a valid `GEMINI_API_KEY`, and a compatible model configuration. Adding a key alone does not turn network calls on. That optional path was not verified during this showcase work.
+The assistant and commissioner brief work offline. `GeminiService(useNetwork = true)` preserves the optional service integration, which needs a compatible model and your own key. Login remains an on-device entry flow. Payment records do not process money, copied reminders are not sent automatically, and vehicle issues are added to the in-app queue rather than dispatched to an external emergency service.
 
-## Handoff
-
-- [Accepted showcase plan](CLEANCITY_SHOWCASE_PLAN.md)
-- [Implementation, verification, and simulator checklist](UI_CHANGES.md)
-
-No emulator, simulator, or hosting environment was provisioned. Device rendering and platform interactions remain for the simulator review described in the handoff.
+See [UI_CHANGES.md](UI_CHANGES.md) for current changes, verification results and remaining simulator checks. The original [showcase plan](CLEANCITY_SHOWCASE_PLAN.md) is retained as implementation history.
