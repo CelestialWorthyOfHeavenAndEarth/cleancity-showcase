@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -93,7 +94,13 @@ fun LoginScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
                 CityField(name, { name = it.take(100) }, s.fullNameLabel, error = submitted && name.isBlank())
                 CityField(address, { address = it.take(200) }, s.streetAddressLabel, multiline = true, error = submitted && address.isBlank())
                 CityField(ward, { ward = it.take(100) }, s.municipalWardLabel, error = submitted && ward.isBlank())
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     listOf(s.catResidential, s.catCommercial, s.catHotel).forEachIndexed { i, label -> ChoiceChip(label, category == i, { category = i }) }
                 }
             }

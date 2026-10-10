@@ -1,9 +1,11 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -46,7 +48,13 @@ fun AiChatbotScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
                     Surface(color = CityColors.positiveBg, shape = RoundedCornerShape(18.dp)) { Icon(Icons.Default.AutoAwesome, null, Modifier.padding(16.dp).size(30.dp), CityColors.primary) }
                     ScreenHeading(cityText("assistant"), cityText("assistantIntro"))
                     StatusBadge(cityText("offline"))
-                    if (messages.isEmpty()) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (messages.isEmpty()) Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         listOf(s.promptPickupTimes, s.promptSegregation, s.promptPayFee, s.promptHomeCompost).forEachIndexed { i, prompt ->
                             SuggestionChip({ viewModel.sendChatMessage(prompt) }, { Text(cityText(listOf("pickupQuestion", "sortQuestion", "billQuestion", "compostQuestion")[i])) }, enabled = !busy, modifier = Modifier.heightIn(min = 48.dp))
                         }

@@ -8,10 +8,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 private val Light = lightColorScheme(
-    primary = CityColors.forest, onPrimary = Color.White,
+    primary = CityColors.MobbinPrimary, onPrimary = Color.White,
     primaryContainer = Color(0xFFEAF4ED), onPrimaryContainer = Color(0xFF124C32),
-    secondary = CityColors.forest, onSecondary = Color.White,
-    secondaryContainer = CityColors.forest, onSecondaryContainer = Color.White,
+    secondary = CityColors.MobbinPrimary, onSecondary = Color.White,
+    secondaryContainer = CityColors.MobbinPrimary, onSecondaryContainer = Color.White,
     tertiary = Color(0xFF287557), onTertiary = Color.White,
     tertiaryContainer = Color(0xFFEAF4ED), onTertiaryContainer = Color(0xFF124C32),
     background = Color.White, onBackground = Color(0xFF203B2B),
@@ -40,7 +40,7 @@ private val Dark = darkColorScheme(
     surfaceContainerLowest = Color(0xFF0D1712), surfaceContainerLow = Color(0xFF17281F),
     surfaceContainer = Color(0xFF1A2D24), surfaceContainerHigh = Color(0xFF22372B),
     surfaceContainerHighest = Color(0xFF293E32), surfaceTint = Color.Transparent,
-    inverseSurface = Color(0xFFE2EFE6), inverseOnSurface = Color(0xFF203B2B), inversePrimary = CityColors.forest,
+    inverseSurface = Color(0xFFE2EFE6), inverseOnSurface = Color(0xFF203B2B), inversePrimary = CityColors.MobbinPrimary,
     outline = Color(0xFF87A08F), outlineVariant = Color(0xFF3B5143),
     error = Color(0xFFFFB4A8), onError = Color(0xFF641D17),
     errorContainer = Color(0xFF542A25), onErrorContainer = Color(0xFFFFDAD2)

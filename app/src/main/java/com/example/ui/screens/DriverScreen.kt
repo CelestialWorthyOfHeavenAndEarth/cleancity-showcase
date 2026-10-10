@@ -1,12 +1,15 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -77,7 +80,13 @@ fun DriverScreen(viewModel: CityModel, weighbridgeLogs: List<WeighbridgeLogEntit
         CityField(gross, { gross = it.take(12) }, cityText("gross"), keyboard = KeyboardType.Decimal, error = attempted && !valid)
         CityField(tare, { tare = it.take(12) }, cityText("tare"), keyboard = KeyboardType.Decimal, error = attempted && !valid)
         CityField(plant, { plant = it.take(100) }, cityText("plant"))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             listOf(s.wetWaste, s.dryWaste, s.sanitaryWaste).forEachIndexed { i, label -> ChoiceChip(label, waste == i, { waste = i }) }
         }
         if (valid) StatusBadge(cityText("net") + " · " + "%.1f".format(grossValue!! - tareValue!!) + " kg")

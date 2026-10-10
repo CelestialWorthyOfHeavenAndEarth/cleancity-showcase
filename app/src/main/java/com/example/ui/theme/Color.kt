@@ -21,7 +21,8 @@ object CityColors {
     val blueBg: Color @Composable get() = if (MaterialTheme.colorScheme.background == Color(0xFF111D18)) Color(0xFF233A50) else Color(0xFFE5EFF7)
     val error: Color @Composable get() = MaterialTheme.colorScheme.error
     val errorBg: Color @Composable get() = MaterialTheme.colorScheme.errorContainer
-    val forest = Color(0xFF166844)
+    val MobbinPrimary = Color(0xFF126B4D) // Deep Forest Green (or Deep Emerald Pine)
+    val forest = MobbinPrimary
     val onForest = Color.White
 }
 

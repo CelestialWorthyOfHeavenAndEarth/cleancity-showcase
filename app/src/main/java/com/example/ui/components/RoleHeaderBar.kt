@@ -1,6 +1,8 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -85,11 +87,19 @@ fun RoleHeaderBar(currentRole: UserRole, selectedLanguage: String, onRoleSelecte
         if (households.isNotEmpty()) CityRecord(cityText("switchHome"), households.size.toString() + " · " + cityText("households"), Icons.Default.Home,
             { accountOpen = false; homesOpen = true }) { Icon(Icons.Default.ChevronRight, null) }
         SectionTitle(cityText("appearance"))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             Appearance.entries.forEach { value -> ChoiceChip(cityText(value.name.lowercase()), appearance == value, { onAppearance(value) }) }
         }
         SectionTitle(s.preferredLanguageLabel)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             DemoScenario.languages.forEach { lang -> ChoiceChip(com.example.util.getAppStrings(lang).languageName, selectedLanguage == lang, { onLanguageSelected(lang) }) }
         }
         if (onLogout != null) CityOutlineButton(onClick = { accountOpen = false; onLogout() }, Modifier.fillMaxWidth().heightIn(min = 52.dp).testTag("btn_logout")) { Text(s.logout) }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.Role
@@ -97,9 +98,6 @@ fun DailyPickupTab(household: HouseholdEntity?, announcements: List<Announcement
     val greeting = when (Calendar.getInstance().get(Calendar.HOUR_OF_DAY)) {
         in 5..11 -> "morning"; in 12..16 -> "afternoon"; else -> "evening"
     }
-    BoxWithConstraints(Modifier.fillMaxSize()) {
-        val wide = maxWidth >= 600.dp
-        val largeText = LocalDensity.current.fontScale > 1.3f
         LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(20.dp, 16.dp, 20.dp, 32.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)) {
             item {
@@ -114,31 +112,18 @@ fun DailyPickupTab(household: HouseholdEntity?, announcements: List<Announcement
             }
             item {
                 Arrival(1) {
-                    if (wide) {
-                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Box(Modifier.weight(1.3f)) { HomePickupStatus(today) }
-                            Box(Modifier.weight(1f)) { HomeImpact(household) }
-                        }
-                    } else HomePickupStatus(today)
+                    HomePickupStatus(today, onOpenQrTag, enabled = household != null)
                 }
             }
             item {
                 Arrival(2) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            if (onReportWaste != null) HomeAction(s.tabReportWaste, Icons.Default.AddAPhoto, onReportWaste, Modifier.weight(1f).fillMaxHeight())
-                            if (onViewBills != null) HomeAction(s.tabBillsUpi, Icons.AutoMirrored.Filled.ReceiptLong, onViewBills, Modifier.weight(1f).fillMaxHeight())
-                            if (!largeText || wide) HomeAction(cityText("qrShortcut"), Icons.Default.QrCode2, onOpenQrTag, Modifier.weight(1f).fillMaxHeight(), enabled = household != null)
-                        }
-                        if (largeText && !wide) CityOutlineButton(onOpenQrTag, Modifier.fillMaxWidth(), enabled = household != null) {
-                            Icon(Icons.Default.QrCode2, null)
-                            Spacer(Modifier.width(10.dp))
-                            Text(cityText("qrShortcut"))
-                        }
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        if (onReportWaste != null) HomeAction(s.tabReportWaste, Icons.Default.AddAPhoto, onReportWaste, Modifier.weight(1f).fillMaxHeight())
+                        if (onViewBills != null) HomeAction(s.tabBillsUpi, Icons.AutoMirrored.Filled.ReceiptLong, onViewBills, Modifier.weight(1f).fillMaxHeight())
                     }
                 }
             }
-            if (!wide) item {
+            item {
                 Arrival(3) {
                     HomeImpact(household)
                 }
@@ -162,29 +147,99 @@ fun DailyPickupTab(household: HouseholdEntity?, announcements: List<Announcement
                 }
             }
         }
-    }
 }
 
 @Composable
-private fun HomePickupStatus(today: PickupLogEntity?) {
+private fun HomePickupStatus(today: PickupLogEntity?, onOpenQrTag: () -> Unit, enabled: Boolean = true) {
     val s = appStrings()
-    Surface(color = CityColors.forest, shape = RoundedCornerShape(28.dp)) {
-        Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text(cityText("todayPickup"), style = MaterialTheme.typography.labelLarge, color = CityColors.onForest)
-            CityTransition(today?.status ?: "SCHEDULED") { status ->
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    if (status == "COLLECTED") SuccessMark(color = CityColors.onForest)
-                    Text(if (status == "SCHEDULED") "7:00 – 9:30 AM" else if (status == "COLLECTED") s.truckCollected else cityText("exceptions"),
-                        style = MaterialTheme.typography.displayMedium, color = CityColors.onForest)
+    Surface(
+        color = CityColors.MobbinPrimary,
+        shape = RoundedCornerShape(28.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 236.dp)
+            .wrapContentHeight()
+            .testTag("hero_daily_pickup_card")
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = 236.dp)
+                .padding(24.dp),
+            verticalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        cityText("todayPickup"),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = CityColors.onForest
+                    )
+                    CityTransition(today?.status ?: "SCHEDULED") { status ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            if (status == "COLLECTED") SuccessMark(color = CityColors.onForest)
+                            Text(
+                                if (status == "SCHEDULED") "7:00 – 9:30 AM" else if (status == "COLLECTED") s.truckCollected else cityText("exceptions"),
+                                style = MaterialTheme.typography.displayMedium,
+                                color = CityColors.onForest
+                            )
+                        }
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            if (today == null) cityText("scheduled") else DemoScenario.timestamp(today.timestamp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = CityColors.onForest.copy(alpha = 0.9f)
+                        )
+                        Text(
+                            s.wetWaste + " · " + s.dryWaste,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = CityColors.onForest.copy(alpha = 0.9f)
+                        )
+                    }
                 }
+                Spacer(Modifier.width(12.dp))
+                NeighborhoodArt(Modifier.width(116.dp).height(72.dp), animateArrival = true)
             }
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(if (today == null) cityText("scheduled") else DemoScenario.timestamp(today.timestamp),
-                        style = MaterialTheme.typography.bodySmall, color = CityColors.onForest)
-                    Text(s.wetWaste + " · " + s.dryWaste, style = MaterialTheme.typography.bodySmall, color = CityColors.onForest)
-                }
-                NeighborhoodArt(Modifier.width(108.dp).height(64.dp), animateArrival = true)
+
+            Spacer(Modifier.height(20.dp))
+
+            Button(
+                onClick = onOpenQrTag,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 52.dp)
+                    .testTag("hero_qr_action_button"),
+                enabled = enabled,
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.White,
+                    contentColor = CityColors.MobbinPrimary,
+                    disabledContainerColor = Color.White.copy(alpha = 0.7f),
+                    disabledContentColor = CityColors.MobbinPrimary.copy(alpha = 0.5f)
+                ),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+            ) {
+                Icon(
+                    Icons.Default.QrCode2,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = cityText("qrShortcut"),
+                    style = MaterialTheme.typography.labelLarge
+                )
             }
         }
     }

@@ -5,8 +5,11 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
@@ -133,7 +136,13 @@ fun ReportWasteScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, m
                         item {
                             CityPanel {
                                 SectionHeading(3, s.descriptionTitle)
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { categories.forEachIndexed { i, label -> ChoiceChip(label, category == i, { category = i }) } }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) { categories.forEachIndexed { i, label -> ChoiceChip(label, category == i, { category = i }) } }
                                 CityField(description, { description = it.take(1000) }, s.descriptionTitle, multiline = true, error = submitted && description.isBlank(), enabled = !op.busy)
                                 if (submitted && (address.isBlank() || description.isBlank())) Text(s.fillAllFieldsError, color = CityColors.error)
                                 OperationFeedback(viewModel, "report") {
@@ -147,9 +156,17 @@ fun ReportWasteScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, m
                         }
                     } else CityPage(s.myReportsTitle) {
                         if (success) item { StatusBadge(s.reportSubmittedSuccess) }
-                        item { FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            listOf("ALL" to s.filterAll, "OPEN" to s.filterPending, "RESOLVED" to s.filterResolved).forEach { (key,label) -> ChoiceChip(label, filter == key, { filter = key }) }
-                        } }
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .horizontalScroll(rememberScrollState()),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                listOf("ALL" to s.filterAll, "OPEN" to s.filterPending, "RESOLVED" to s.filterResolved).forEach { (key,label) -> ChoiceChip(label, filter == key, { filter = key }) }
+                            }
+                        }
                         if (filtered.isEmpty()) item { EmptyState(s.noReports) }
                         items(filtered, key = { it.id }) { report -> WasteReportCard(report, { viewModel.clearOperation(); detailId = report.id }, Modifier.animateItem()) }
                     }

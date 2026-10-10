@@ -1,12 +1,15 @@
 package com.example.ui.screens
 
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -53,7 +56,13 @@ fun CollectorScreen(viewModel: CityModel, households: List<HouseholdEntity>, pic
             item {
                 SectionTitle(cityText("stops"))
                 CityField(query, { query = it }, cityText("searchHomes"))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     listOf(s.filterAll, cityText("remaining"), cityText("completed")).forEachIndexed { i, label -> ChoiceChip(label, filter == i, { filter = i }) }
                 }
             }
@@ -85,14 +94,26 @@ fun CollectorScreen(viewModel: CityModel, households: List<HouseholdEntity>, pic
                     Text(DemoScenario.timestamp(existing.timestamp))
                     existing.reasonNotCollected?.let { Text(it) }
                 } else {
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         listOf("COLLECTED" to cityText("collected"), "MIXED_WASTE" to cityText("mixed"), "NOT_COLLECTED" to cityText("notCollected")).forEach { (key,label) ->
                             ChoiceChip(label, status == key, { status = key })
                         }
                     }
                     if (status == "COLLECTED") {
                         SectionTitle(cityText("quality"))
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             listOf("GOOD" to cityText("good"), "PARTIAL" to cityText("partial"), "MIXED" to cityText("mixed")).forEach { (key,label) -> ChoiceChip(label, quality == key, { quality = key }) }
                         }
                     }

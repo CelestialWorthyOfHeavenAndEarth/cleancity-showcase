@@ -1,8 +1,11 @@
 package com.example.ui.screens
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.*
@@ -10,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,11 +48,24 @@ fun SupervisorScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, cr
                             }) }
                             if ("sos" in notices) item { CityPanel(color = CityColors.warningBg) { Text(cityText("sos"), style = MaterialTheme.typography.titleMedium); Text(DemoScenario.vehicle); ContextNote(cityText("demoRecorded")) } }
                             item { SectionTitle(cityText("crew")) }
-                            items(crew, key = { it.id }) { member -> PersonRecord(member.workerName, member.role + " · " + member.checkInTime) }
+                            items(crew, key = { it.id }) { member ->
+                                PersonRecord(member.workerName, member.role + " · " + member.checkInTime) {
+                                    StatusBadge(
+                                        if (member.ppeChecked) cityText("safety") else cityText("exceptions"),
+                                        if (member.ppeChecked) "positive" else "warning"
+                                    )
+                                }
+                            }
                         }
                         1 -> CityPage(cityText("reports"), cityText("sla") + " · 24 h") {
                             item {
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState()),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     listOf("ALL", "OPEN", "IN_PROGRESS", "ESCALATED", "RESOLVED").forEach { status ->
                                         ChoiceChip(if (status == "ALL") s.filterAll else reportStatus(status), statusFilter == status, { statusFilter = status })
                                     }
@@ -63,11 +80,54 @@ fun SupervisorScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, cr
                             item { OperationFeedback(viewModel, "ppe") }
                             if (crew.isEmpty()) item { EmptyState(cityText("noRecords")) }
                             items(crew, key = { it.id }) { member ->
-                                Column {
-                                    PersonRecord(member.workerName, member.role + " · " + member.checkInTime)
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Text(cityText("safety"), Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge)
-                                        Switch(member.ppeChecked, { viewModel.toggleCrewPpe(member) }, enabled = !op.busy)
+                                CityPanel {
+                                    Row(
+                                        Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                                    ) {
+                                        Surface(color = CityColors.positiveBg, shape = RoundedCornerShape(16.dp)) {
+                                            Box(Modifier.size(48.dp), contentAlignment = Alignment.Center) {
+                                                Text(
+                                                    member.workerName.split(" ").filter { it.isNotBlank() }.take(2).joinToString("") { it.take(1) },
+                                                    style = MaterialTheme.typography.titleMedium,
+                                                    color = CityColors.primary
+                                                )
+                                            }
+                                        }
+                                        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                                            Text(member.workerName, style = MaterialTheme.typography.titleMedium, color = CityColors.ink)
+                                            Text(member.role + " · " + member.checkInTime, style = MaterialTheme.typography.bodySmall, color = CityColors.muted)
+                                        }
+                                    }
+                                    HorizontalDivider(color = CityColors.line)
+                                    Row(
+                                        Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Icon(
+                                                if (member.ppeChecked) Icons.Default.CheckCircle else Icons.Default.WarningAmber,
+                                                contentDescription = null,
+                                                tint = if (member.ppeChecked) CityColors.primary else CityColors.warning,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Text(
+                                                cityText("safety"),
+                                                style = MaterialTheme.typography.bodyLarge,
+                                                color = CityColors.ink
+                                            )
+                                        }
+                                        Switch(
+                                            checked = member.ppeChecked,
+                                            onCheckedChange = { viewModel.toggleCrewPpe(member) },
+                                            enabled = !op.busy
+                                        )
                                     }
                                 }
                             }
