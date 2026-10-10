@@ -40,7 +40,7 @@ fun LoginScreen(viewModel: CityModel, modifier: Modifier = Modifier) {
                 Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(cityText("tagline"), style = MaterialTheme.typography.displayLarge, color = CityColors.onForest)
                     NeighborhoodArt()
-                    Text(s.appSubtitle, style = MaterialTheme.typography.bodyMedium, color = CityColors.lime)
+                    Text(s.appSubtitle, style = MaterialTheme.typography.bodyMedium, color = CityColors.onForest)
                 }
             }
         }

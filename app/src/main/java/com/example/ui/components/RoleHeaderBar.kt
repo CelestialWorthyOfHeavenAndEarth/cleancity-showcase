@@ -55,7 +55,7 @@ fun RoleHeaderBar(currentRole: UserRole, selectedLanguage: String, onRoleSelecte
         Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Surface(color = CityColors.forest, shape = RoundedCornerShape(14.dp)) {
-                    Icon(Icons.Default.Eco, null, Modifier.padding(10.dp).size(22.dp), CityColors.lime)
+                    Icon(Icons.Default.Eco, null, Modifier.padding(10.dp).size(22.dp), CityColors.onForest)
                 }
                 Column(Modifier.weight(1f)) {
                     Text("CleanCity", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)

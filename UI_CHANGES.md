@@ -4,7 +4,9 @@ Updated 10 October 2026. This revision follows the request for memorable TFI nam
 
 ## Interface changes
 
-The warm ivory, forest-green and lime identity now has a compact header, clearer hierarchy and shorter action names. The normal phone header keeps brand, ward, role and preferences in one row; enlarged text moves the role control to another row. Household and crew lists use initial avatars and divided records. The illustrated citizen hero is shorter, bringing report and bill actions forward. Collection history includes a seven-day status strip.
+The identity uses white and emerald green, sampled from the user's reference (`#166844`). The palette revision removes the former ivory canvas and pale lime accents from both themes, navigation, buttons, QR cards and illustrations. Green hero panels have white text and white QR buttons; Report and Bills use matching outlined controls. Material surface colors are explicitly set to avoid unrelated default tints. White text on the reference green has a 6.78:1 contrast ratio; body and supporting text on white exceed 4.5:1. The launcher and printable tag sheet use the same palette. Dark appearance uses corresponding green and neutral surfaces. The layout and all workflows are retained.
+
+The normal phone header keeps brand, ward, role and preferences in one row; enlarged text moves the role control to another row. Household and crew lists use initial avatars and divided records. The illustrated citizen hero is shorter, bringing report and bill actions forward. Collection history includes a seven-day status strip.
 
 Repeated Demo, Simulate and Local showcase wording has been removed from product surfaces. Actions use plain names: Get started, Scan household QR, Record payment, Payment reminder and Report vehicle issue. The payment confirmation explains its actual ledger effect. Reminders can be copied; vehicle issues appear in the supervisor queue. Neither action claims external delivery.
 
@@ -60,7 +62,7 @@ Thirty-six host-rendered Compose images cover light/dark phone screens, enlarged
 
 The existing tooling can emit a non-fatal KSP shutdown exception. Lint was previously blocked by uncached instrumentation-test dependencies and is separate from these build/unit/render checks.
 
-The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,315 bytes), copied from the final successful debug build. SHA-256: `6FC5E475A2F9BB0E5CDC863BDC8F324FA25D5478B262421EE5E04698ED39FA9F`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
+The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,315 bytes), copied from the final successful debug build. SHA-256: `9C7DB88A3E7EBE7AAC8BABFDD799875640F87E85AFCA29F5C030517D10E79CEE`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
 
 ## Simulator/device checklist
 

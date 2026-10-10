@@ -75,3 +75,7 @@ The five-role showcase, shared visual system, connected local journeys, and Room
 ## Follow-up revision (2026-10-10)
 
 The subsequent user request supersedes the simulated-scanner and repeated demonstration-badge requirements above. The app now uses real household QR encoding, camera/image decoding and sharing; a larger fictional TFI cast dataset; concise product wording; and searchable household switching. Room version 4 enriches prior installations without deleting saved records. Payment and communication controls describe their actual on-device effects. Current verification and the presentation walkthrough are maintained in UI_CHANGES.md and README.md.
+
+## Palette revision — 10 October 2026
+
+The user-approved white and emerald reference supersedes the original warm ivory/lime direction. Use emerald `#166844`, white surfaces, green text and subtle neutral-green dividers. Remove pale lime accents throughout both themes, controls, QR cards and illustrations; retain the established layout and features.

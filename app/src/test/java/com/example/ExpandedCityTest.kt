@@ -91,7 +91,7 @@ class ExpandedCityTest {
             "<article><h2>" + home.residentName + "</h2><img src='" + home.qrCode + ".png' alt='Household QR'><strong>" + home.qrCode + "</strong><p>" + home.ward + "</p></article>"
         }
         File(output, "index.html").writeText("""<!doctype html><html lang="en"><meta charset="utf-8"><title>CleanCity household tags</title>
-            <style>body{font:15px system-ui;background:#f6f4ec;color:#124734;margin:32px}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}article{border:1px solid #c9d8c3;border-radius:20px;padding:20px;text-align:center;background:white;break-inside:avoid}img{display:block;width:220px;max-width:100%;margin:auto}h2{font-size:20px}strong{display:block;font-size:16px}p{font-size:12px}@media print{body{margin:0}main{grid-template-columns:repeat(3,1fr)}article{padding:12px}img{width:170px}}</style>
+            <style>body{font:15px system-ui;background:#ffffff;color:#166844;margin:32px}main{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px}article{border:1px solid #dfe8e1;border-radius:20px;padding:20px;text-align:center;background:white;break-inside:avoid}img{display:block;width:220px;max-width:100%;margin:auto}h2{font-size:20px}strong{display:block;font-size:16px}p{font-size:12px}@media print{body{margin:0}main{grid-template-columns:repeat(3,1fr)}article{padding:12px}img{width:170px}}</style>
             <h1>CleanCity · Household tags</h1><p>Scan with the collector's camera, or import a QR image.</p><main>""" + cards + "</main></html>")
     }
 

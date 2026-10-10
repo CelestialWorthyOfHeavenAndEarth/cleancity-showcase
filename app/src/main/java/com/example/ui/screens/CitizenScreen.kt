@@ -87,20 +87,20 @@ fun DailyPickupTab(household: HouseholdEntity?, announcements: List<Announcement
             AdaptiveColumns(primary = {
                 Surface(color = CityColors.forest, shape = RoundedCornerShape(28.dp)) {
                     Column(Modifier.padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text(if (today == null) cityText("sampleSchedule") else cityText("today"), style = MaterialTheme.typography.labelLarge, color = CityColors.lime)
+                        Text(if (today == null) cityText("sampleSchedule") else cityText("today"), style = MaterialTheme.typography.labelLarge, color = CityColors.onForest)
                         Text(if (today == null) "7:00 – 9:30 AM" else when(today.status) { "COLLECTED" -> s.truckCollected; else -> cityText("exceptions") },
                             style = MaterialTheme.typography.displayLarge, color = CityColors.onForest)
                         Text(if (today == null) s.wetWaste + " · " + s.dryWaste else DemoScenario.timestamp(today.timestamp),
                             style = MaterialTheme.typography.bodyMedium, color = CityColors.onForest)
                         NeighborhoodArt(Modifier.height(128.dp))
                         Button(onOpenQrTag, Modifier.fillMaxWidth().heightIn(min = 52.dp), enabled = household != null,
-                            colors = ButtonDefaults.buttonColors(containerColor = CityColors.lime, contentColor = CityColors.forest), shape = RoundedCornerShape(14.dp)) {
+                            colors = ButtonDefaults.buttonColors(containerColor = CityColors.onForest, contentColor = CityColors.forest), shape = RoundedCornerShape(14.dp)) {
                             Icon(Icons.Default.QrCode2, null); Spacer(Modifier.width(8.dp)); Text(s.householdQrCode)
                         }
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    if (onReportWaste != null) FilledTonalButton(onReportWaste, Modifier.weight(1f).heightIn(min = 52.dp)) {
+                    if (onReportWaste != null) OutlinedButton(onReportWaste, Modifier.weight(1f).heightIn(min = 52.dp)) {
                         Icon(Icons.Default.AddAPhoto, null, Modifier.size(18.dp)); Spacer(Modifier.width(8.dp)); Text(s.tabReportWaste)
                     }
                     if (onViewBills != null) OutlinedButton(onViewBills, Modifier.weight(1f).heightIn(min = 52.dp)) { Text(s.tabBillsUpi) }

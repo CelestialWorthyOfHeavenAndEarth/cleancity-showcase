@@ -37,7 +37,7 @@ fun HouseholdQrCard(home: HouseholdEntity) {
                 Image(bitmap.asImageBitmap(), appStrings().householdQrCode + " · " + home.qrCode,
                     Modifier.fillMaxWidth().widthIn(max = 300.dp).aspectRatio(1f).padding(8.dp))
             }
-            Text(home.qrCode, style = MaterialTheme.typography.titleLarge, color = CityColors.lime)
+            Text(home.qrCode, style = MaterialTheme.typography.titleLarge, color = CityColors.onForest)
             Text(home.address, style = MaterialTheme.typography.bodySmall, color = CityColors.onForest)
         }
     }

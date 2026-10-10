@@ -1,6 +1,6 @@
 # CleanCity
 
-A native Android app for household waste collection, reporting, sorting, payments and municipal operations. Built with Kotlin, Jetpack Compose, Material 3 and Room, with a warm ivory/forest identity, dark appearance and nine languages.
+A native Android app for household waste collection, reporting, sorting, payments and municipal operations. Built with Kotlin, Jetpack Compose, Material 3 and Room, with a white/emerald identity, dark appearance and nine languages.
 
 ## Get started
 
