@@ -26,7 +26,7 @@ Android semantic haptics accompany deliberate selections, QR matches and success
 
 Pulled commit `7e4a131` without conflicts. Its QR-in-hero layout, deep emerald color, scrolling chip rows, crew cards and launcher changes are retained.
 
-The supplied `Video-25080.mp4` is now a bundled, silent welcome background behind a theme-aware gradient. The derived 720 × 1280 H.264 clip runs for 8.58 seconds and uses a 0.75-second blend at the loop boundary. It is 2.2 MB, with a matching still image. The original file remains unchanged locally.
+The supplied `Video-25080.mp4` is now a bundled, silent welcome background behind a theme-aware gradient. The middle now reveals 42% of the footage, up from 28%, while coverage behind the heading and controls remains unchanged. The derived 720 × 1280 H.264 clip runs for 8.58 seconds and uses a 0.75-second blend at the loop boundary. It is 2.2 MB, with a matching still image. The original file remains unchanged locally.
 
 A pause/play control sits above Get started. Reduced motion, previews, loading and decoding errors use the still image. The native player releases immediately when the activity pauses, and also releases when the user opens forms, changes language through the sheet, enters the app or leaves the welcome screen. Late preparation callbacks cannot restart a disposed player. The clip needs no network service and entry does not wait for video preparation. Playback and pause labels are localized in all nine languages. Asset provenance and implementation details are in [docs/WELCOME_VIDEO.md](docs/WELCOME_VIDEO.md).
 
@@ -68,7 +68,9 @@ The existing nine languages, light/dark/system preferences, transactional paymen
 
 ## Verification
 
-The debug APK builds successfully. All 41 local tests pass, covering household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, offline responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected. Four motion interaction tests verify the full-name Home and shortcuts, predictive Back cancellation/completion with preserved state, success-only haptic dispatch, and immediate rendering when system animations are disabled. Five video tests cover muted looping, immediate lifecycle release, late callbacks after disposal, decoder-error fallback, motion/overlay gating, manual pause/play and immediate entry.
+The debug APK builds successfully. All 41 local tests passed for the video integration before the middle-opacity adjustment, covering household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, offline responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected. Four motion interaction tests verify the full-name Home and shortcuts, predictive Back cancellation/completion with preserved state, success-only haptic dispatch, and immediate rendering when system animations are disabled. Five video tests cover muted looping, immediate lifecycle release, late callbacks after disposal, decoder-error fallback, motion/overlay gating, manual pause/play and immediate entry.
+
+For the middle-opacity adjustment, the APK was rebuilt and the two existing `majorScreensRenderInBothThemes` and `largeTextOperationalScreensRender` tests passed, refreshing 27 captures. The welcome captures in light, dark and enlarged text were visually inspected. No playback behavior changed; the full 41-test suite was not repeated for this styling-only change.
 
 The verification command uses the installed JDK 22 and Android SDK 36.1:
 
@@ -82,7 +84,7 @@ These are Robolectric host renders, not screenshots from an installed APK or emu
 
 The existing tooling can emit a non-fatal KSP shutdown exception. Lint was previously blocked by uncached instrumentation-test dependencies and is separate from these build/unit/render checks.
 
-The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), copied from the final successful debug build. SHA-256: `203B5EC1B9901CBE8E5B70745E89D35892098ABB140A3481E5CB1C196D638C11`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
+The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), copied from the final successful debug build. SHA-256: `493DA578D3562FCA18EF42389F59097B34CD1CEE9D248DCDDA2CAD0B2D26B14A`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
 
 ## Simulator/device checklist
 

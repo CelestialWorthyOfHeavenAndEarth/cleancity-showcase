@@ -18,7 +18,7 @@ Bundled video SHA-256: `007c03cbccfe45146c0ea28327a527689ab1ce36c3b9bd7202bd92bd
 
 ## Presentation and lifecycle
 
-The welcome illustration is replaced by full-size footage behind a theme-aware gradient. Video visibility peaks at 28% in the middle; the headline and controls have stronger coverage. Text and buttons remain opaque. Dark appearance uses the same footage under the dark canvas color.
+The welcome illustration is replaced by full-size footage behind a theme-aware gradient. Video visibility peaks at 42% in the middle, increased from 28% by reducing only the middle gradient stop. Coverage behind the headline and controls is unchanged. Text and buttons remain opaque. Dark appearance uses the same footage under the dark canvas color.
 
 - The clip is bundled and requires no network request or media permission.
 - Android `MediaPlayer` and `TextureView` handle local playback; no Android library was added.
