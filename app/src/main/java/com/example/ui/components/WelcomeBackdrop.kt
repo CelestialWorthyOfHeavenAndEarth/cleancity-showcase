@@ -52,11 +52,11 @@ fun WelcomeBackdrop(modifier: Modifier = Modifier, playbackAllowed: Boolean = tr
             )
         }
         Box(Modifier.fillMaxSize().background(Brush.verticalGradient(
-            0f to canvas.copy(alpha = .96f),
-            .38f to canvas.copy(alpha = .92f),
-            .64f to canvas.copy(alpha = .58f),
-            .80f to canvas.copy(alpha = .82f),
-            1f to canvas.copy(alpha = .98f)
+            0f to canvas.copy(alpha = .84f),
+            .38f to canvas.copy(alpha = .76f),
+            .64f to canvas.copy(alpha = .35f),
+            .80f to canvas.copy(alpha = .62f),
+            1f to canvas.copy(alpha = .84f)
         )))
     }
 }
