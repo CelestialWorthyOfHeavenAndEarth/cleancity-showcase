@@ -154,19 +154,17 @@ private fun HomePickupStatus(today: PickupLogEntity?, onOpenQrTag: () -> Unit, e
     val s = appStrings()
     Surface(
         color = CityColors.MobbinPrimary,
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(24.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 236.dp)
             .wrapContentHeight()
             .testTag("hero_daily_pickup_card")
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 236.dp)
-                .padding(24.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -175,7 +173,7 @@ private fun HomePickupStatus(today: PickupLogEntity?, onOpenQrTag: () -> Unit, e
             ) {
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
                         cityText("todayPickup"),
@@ -195,7 +193,7 @@ private fun HomePickupStatus(today: PickupLogEntity?, onOpenQrTag: () -> Unit, e
                             )
                         }
                     }
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                         Text(
                             if (today == null) cityText("scheduled") else DemoScenario.timestamp(today.timestamp),
                             style = MaterialTheme.typography.bodySmall,
@@ -209,31 +207,29 @@ private fun HomePickupStatus(today: PickupLogEntity?, onOpenQrTag: () -> Unit, e
                     }
                 }
                 Spacer(Modifier.width(12.dp))
-                NeighborhoodArt(Modifier.width(116.dp).height(72.dp), animateArrival = true)
+                NeighborhoodArt(Modifier.width(112.dp).height(64.dp), animateArrival = true)
             }
-
-            Spacer(Modifier.height(20.dp))
 
             Button(
                 onClick = onOpenQrTag,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 52.dp)
+                    .heightIn(min = 48.dp)
                     .testTag("hero_qr_action_button"),
                 enabled = enabled,
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
                     contentColor = CityColors.MobbinPrimary,
                     disabledContainerColor = Color.White.copy(alpha = 0.7f),
                     disabledContentColor = CityColors.MobbinPrimary.copy(alpha = 0.5f)
                 ),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)
             ) {
                 Icon(
                     Icons.Default.QrCode2,
                     contentDescription = null,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(20.dp)
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(

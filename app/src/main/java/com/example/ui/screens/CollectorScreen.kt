@@ -53,9 +53,9 @@ fun CollectorScreen(viewModel: CityModel, households: List<HouseholdEntity>, pic
                     CityOutlineButton({ earnings = true }, Modifier.fillMaxWidth().heightIn(min = 52.dp)) { Icon(Icons.Default.AccountBalanceWallet, null); Spacer(Modifier.width(8.dp)); Text(cityText("earnings")) }
                 })
             }
+            item { SectionTitle(cityText("stops")) }
+            item { CityField(query, { query = it }, cityText("searchHomes")) }
             item {
-                SectionTitle(cityText("stops"))
-                CityField(query, { query = it }, cityText("searchHomes"))
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
