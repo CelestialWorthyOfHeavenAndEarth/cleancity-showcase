@@ -4,13 +4,18 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.example.ai.ChatMessage
+import com.example.ai.ChatSession
+import com.example.ai.ChatAssistant
+import com.example.ai.GroqCredentials
+import com.example.ai.GroqService
 import com.example.ai.GeminiService
 import com.example.ai.MunicipalStats
 import com.example.data.*
 import com.example.util.getAppStrings
 import com.example.util.showcaseText
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -56,12 +61,17 @@ class CleanCityViewModel(application: Application, private val saved: SavedState
     override val statusBanner = MutableStateFlow<String?>(null)
     override val completedDriverStops = saved.getStateFlow("driverStops", intArrayOf())
     override val demoNotices = saved.getStateFlow("notices", arrayListOf<String>())
-    override val chatMessages = MutableStateFlow<List<ChatMessage>>(emptyList())
-    override val isChatLoading = MutableStateFlow(false)
-    override val chatError = MutableStateFlow<String?>(null)
+    private val groqCredentials = GroqCredentials(application)
+    override val chatConfigured = MutableStateFlow(groqCredentials.read().isNotBlank())
+    private val chat = ChatSession(ChatAssistant { message, language, history ->
+        val key = withContext(Dispatchers.IO) { groqCredentials.read() }
+        GroqService(key).reply(message, language, history)
+    }, viewModelScope) { selectedLanguage.value }
+    override val chatMessages = chat.messages
+    override val isChatLoading = chat.loading
+    override val chatError = chat.error
     override val aiSummary = MutableStateFlow<String?>(null)
     override val isSummaryLoading = MutableStateFlow(false)
-    private var lastChat = ""
 
     override val stats = combine(households, allPickupLogs, allComplaints, allPayments, weighbridgeLogs) { homes, pickups, reports, payments, weights ->
         val today = DemoScenario.today(pickups)
@@ -108,7 +118,10 @@ class CleanCityViewModel(application: Application, private val saved: SavedState
         if (operation.value.key == key) clearOperation()
     }
     override fun selectHousehold(id: Int) {
-        if (households.value.any { it.id == id }) { saved["household"] = id; clearOperation() }
+        if (households.value.any { it.id == id }) {
+            if (id != selectedHouseholdId.value) chat.clear()
+            saved["household"] = id; clearOperation()
+        }
     }
     override fun setRole(role: UserRole) { saved["role"] = role; clearOperation() }
     override fun setLanguage(language: String) {
@@ -120,7 +133,7 @@ class CleanCityViewModel(application: Application, private val saved: SavedState
         preferences.edit().putString("appearance", value.name).apply()
     }
     override fun clearStatusBanner() { statusBanner.value = null }
-    override fun logout() { saved["loggedIn"] = false; saved["role"] = UserRole.CITIZEN; clearOperation() }
+    override fun logout() { chat.clear(); saved["loggedIn"] = false; saved["role"] = UserRole.CITIZEN; clearOperation() }
     override fun loginWithDemoCitizen() = action("auth", announce = false) {
         val household = requireNotNull(repository.findHouseholdByQr("BIN-JH-101"))
         saved["household"] = household.id
@@ -177,24 +190,18 @@ class CleanCityViewModel(application: Application, private val saved: SavedState
         saved["notices"] = ArrayList((demoNotices.value + key).distinct())
         statusBanner.value = text("demoRecorded")
     }
-    override fun sendChatMessage(userText: String) {
-        if (userText.isBlank() || isChatLoading.value) return
-        lastChat = userText
-        chatError.value = null
-        chatMessages.value += ChatMessage("user", userText)
-        reply(userText)
+    override fun sendChatMessage(userText: String) = chat.send(userText)
+    override fun retryChat() = chat.retry()
+    override fun configureChatKey(key: String) = action("chatKey", announce = false) {
+        require(GroqCredentials.valid(key))
+        withContext(Dispatchers.IO) { groqCredentials.save(key) }
+        chat.clear()
+        chatConfigured.value = true
     }
-    override fun retryChat() { if (!isChatLoading.value && lastChat.isNotBlank()) reply(lastChat) }
-    private fun reply(userText: String) {
-        isChatLoading.value = true; chatError.value = null
-        viewModelScope.launch {
-            try {
-                val response = geminiService.chatAssistant(userText, selectedLanguage.value, chatMessages.value.dropLast(1))
-                chatMessages.value += ChatMessage("model", response)
-            } catch (e: CancellationException) { throw e }
-            catch (_: Exception) { chatError.value = text("saveError") }
-            finally { isChatLoading.value = false }
-        }
+    override fun removeChatKey() = action("chatKey", announce = false) {
+        chat.clear()
+        withContext(Dispatchers.IO) { groqCredentials.clear() }
+        chatConfigured.value = false
     }
     override fun generateExecutiveSummary() {
         if (isSummaryLoading.value) return

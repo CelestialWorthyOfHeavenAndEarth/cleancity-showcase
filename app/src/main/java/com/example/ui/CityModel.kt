@@ -35,6 +35,7 @@ interface CityModel {
     val chatMessages: StateFlow<List<ChatMessage>>
     val isChatLoading: StateFlow<Boolean>
     val chatError: StateFlow<String?>
+    val chatConfigured: StateFlow<Boolean>
     val aiSummary: StateFlow<String?>
     val isSummaryLoading: StateFlow<Boolean>
     val stats: StateFlow<MunicipalStats>
@@ -65,6 +66,8 @@ interface CityModel {
     fun acknowledgeDemo(key: String)
     fun sendChatMessage(userText: String)
     fun retryChat()
+    fun configureChatKey(key: String)
+    fun removeChatKey()
     fun generateExecutiveSummary()
 }
 

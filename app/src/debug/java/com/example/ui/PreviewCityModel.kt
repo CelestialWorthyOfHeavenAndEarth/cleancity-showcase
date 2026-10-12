@@ -42,6 +42,7 @@ class PreviewCityModel : CityModel {
     override val chatMessages: StateFlow<List<ChatMessage>> = MutableStateFlow(emptyList())
     override val isChatLoading: StateFlow<Boolean> = MutableStateFlow(false)
     override val chatError: StateFlow<String?> = MutableStateFlow(null)
+    override val chatConfigured: StateFlow<Boolean> = MutableStateFlow(true)
     override val aiSummary: StateFlow<String?> = MutableStateFlow(null)
     override val isSummaryLoading: StateFlow<Boolean> = MutableStateFlow(false)
     private val today = DemoScenario.today(pickups)
@@ -78,5 +79,7 @@ class PreviewCityModel : CityModel {
     override fun acknowledgeDemo(key: String) {}
     override fun sendChatMessage(userText: String) {}
     override fun retryChat() {}
+    override fun configureChatKey(key: String) {}
+    override fun removeChatKey() {}
     override fun generateExecutiveSummary() {}
 }

@@ -1,6 +1,6 @@
 # CleanCity — Welcome video, motion and connected city workflows
 
-Updated 12 October 2026. The latest revision keeps welcome-video visibility at 65%, adds a little more white behind the heading and controls, and moves the TFI presentation households to four Andhra Pradesh cities. The user's Google AI Studio update, connected workflows and full-name Home greeting remain incorporated.
+Updated 12 October 2026. The latest revision connects the assistant to Groq online with encrypted device-only key setup. The user's latest AI Studio changes (`52a5837`), Andhra Pradesh locations, welcome-video visibility and connected workflows remain incorporated.
 
 ## Interface changes
 
@@ -64,29 +64,33 @@ The QR tests verify every cast household by encoding and decoding its tag. No ex
 
 ## Other completed interactions
 
+The assistant now uses Groq online. Its connection sheet accepts a masked API key and stores it encrypted outside Android backups; no Groq key is bundled in either debug or release builds. Typed messages and bounded conversation history are sent to Groq, with a visible explanation in the chat screen. Retry, cancellation and distinct localized connection/key/rate-limit errors replace the old automatic local-answer fallback. Sign-out and household changes clear the conversation. The commissioner brief remains local. See [Groq setup and verification](docs/GROQ_ASSISTANT.md).
+
 Supervisor resolution accepts an entered inspection note or a selected image; there is no fabricated proof button. Resolution history displays the stored note or image. Receipt titles and references describe saved payment records. The admin reminder action copies the visible text to the clipboard. The fuller collection and payment histories remain scoped to the selected citizen while staff views cover the operational dataset.
 
-The existing nine languages, light/dark/system preferences, transactional payment/collection protections, offline assistant, shared commissioner metrics, scrollable sheets and responsive layouts remain in place. New control wording is provided in all nine languages.
+The existing nine languages, light/dark/system preferences, transactional payment/collection protections, shared commissioner metrics, scrollable sheets and responsive layouts remain in place. New chat connection and error wording is provided in all nine languages.
 
 ## Verification
 
-The debug APK builds successfully. All 43 local tests pass, covering household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, offline responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected. Four motion interaction tests verify the full-name Home and shortcuts, predictive Back cancellation/completion with preserved state, success-only haptic dispatch, and immediate rendering when system animations are disabled. Five video tests cover muted looping, immediate lifecycle release, late callbacks after disposal, decoder-error fallback, motion/overlay gating, manual pause/play and immediate entry.
+The debug APK builds successfully. The suite reports 54 tests: 53 passed and one optional live-network test skipped, with no failures or errors. Existing checks cover household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, legacy local responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected. Four motion interaction tests verify the full-name Home and shortcuts, predictive Back cancellation/completion with preserved state, success-only haptic dispatch, and immediate rendering when system animations are disabled. Five video tests cover muted looping, immediate lifecycle release, late callbacks after disposal, decoder-error fallback, motion/overlay gating, manual pause/play and immediate entry.
+
+Ten new offline tests cover the Groq request/response contract, typed errors, missing credentials, cancellation, retry without duplicate questions, clearing conversations, localized connection copy, encrypted credential storage/corruption/removal, and connection-sheet validation. A separate direct request to Groq successfully received a live reply. Both generated BuildConfig variants and every decompressed APK entry were checked to confirm the provided Groq key is absent. The actual Android Keystore implementation and installed-device HTTP behavior remain device checks.
 
 Two new location-refresh tests cover existing version 4 records with shifted database IDs, preservation of payments/scores/QR identity/history/proof/attendance/weights/fines, custom-address and custom-ward exclusions, independently entered reports, and repeat initialization. The fresh-dataset check verifies the four city assignments and report coordinates. The full suite, APK build and all 39 host captures were refreshed for this update.
 
 The full-suite verification command uses the installed JDK 22 and Android SDK 36.1:
 
 ```powershell
-.\gradlew.bat --offline :app:testDebugUnitTest :app:assembleDebug --console=plain
+.\gradlew.bat --offline :app:testDebugUnitTest :app:assembleDebug :app:generateReleaseBuildConfig --console=plain
 ```
 
-Thirty-nine host-rendered Compose images cover light/dark phone screens, enlarged text, wide layouts, QR cards, supervisor reports/crew, admin wards/finance/transactions, and the new report/collection detail pages. The latest visual review covered welcome in both themes, Home, enlarged-text Home and admin ward comparisons. Static screenshots use the reduced-motion path because a software bitmap canvas cannot draw shared-transition RenderNodes; welcome captures therefore show the actual poster and gradient. Separate interaction tests exercise motion, Back behavior and the video lifecycle using a shadow player. Every frame of the bundled video was decoded with FFmpeg during the video integration, and the video embedded in that APK matched the prepared asset byte for byte. The current handoff APK was checked against the build output and its DEX contains the new location refresh and Andhra Pradesh city strings.
+Thirty-nine host-rendered Compose images cover light/dark phone screens, enlarged text, wide layouts, QR cards, supervisor reports/crew, admin wards/finance/transactions, and the new report/collection detail pages. The latest visual review covered the assistant in both themes. Static screenshots use the reduced-motion path because a software bitmap canvas cannot draw shared-transition RenderNodes; welcome captures therefore show the actual poster and gradient. Separate interaction tests exercise motion, Back behavior and the video lifecycle using a shadow player. Every frame of the bundled video was decoded with FFmpeg during the video integration, and the video embedded in that APK matched the prepared asset byte for byte.
 
 These are Robolectric host renders, not screenshots from an installed APK or emulator. Scanner entry, invalid/valid household-ID lookup, the collection form and weight validation are checked through Compose interactions. Dialog-window appearance, physical haptic strength, gesture feel, hardware video playback, loop continuity and animation frame pacing remain device checks.
 
 The existing tooling can emit a non-fatal KSP shutdown exception. Lint was previously blocked by uncached instrumentation-test dependencies and is separate from these build/unit/render checks.
 
-The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), copied from the final successful debug build. SHA-256: `868FCD092AFD9F68FD344142C0054AA111F01518D68347FF2C7C4EAEB2E18099`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
+The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), copied from the final successful debug build. SHA-256: `BD03961922B41AD69AB0604C8265611DA107A06239EB7F221197E7E85850AB35`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
 
 ## Simulator/device checklist
 
@@ -97,5 +101,6 @@ The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), 
 5. Open report and collection details, swipe Back partway and cancel, then complete Back. Verify drafts, scroll position, touch feedback and reduced-motion settings.
 6. On welcome, check video playback, pause/play, reduced motion, light/dark appearance, form opening, background/resume and entry. Confirm that no audio plays.
 7. Upgrade an existing installation and confirm saved work remains intact.
+8. Connect the assistant with a Groq key, verify persistence after restart, try airplane mode and retry, replace/remove the key, and confirm household switching and sign-out cancel pending replies.
 
-No emulator or Google AI Studio environment was set up. Network authentication, payment processing, SMS transport and external incident dispatch remain outside this app's current on-device workflows. The optional Gemini network path is retained but was not verified.
+No emulator or Google AI Studio environment was set up. Network account authentication, payment processing, SMS transport and external incident dispatch remain outside this app's current on-device workflows. Groq key access and a live reply were verified from the local host; installed-device networking and Android Keystore still require a device check. The optional Gemini network path is retained but was not verified.

@@ -54,6 +54,10 @@ Debug builds use a project-root `debug.keystore` when supplied; otherwise they u
 
 ## Integration boundaries
 
-The assistant and commissioner brief work offline. `GeminiService(useNetwork = true)` preserves the optional service integration, which needs a compatible model and your own key. Login remains an on-device entry flow. Payment records do not process money, copied reminders are not sent automatically, and vehicle issues are added to the in-app queue rather than dispatched to an external emergency service.
+The assistant uses Groq online with `openai/gpt-oss-120b`. Open **Assistant → Connect assistant**, paste your own Groq API key, and choose **Save key**. The key is encrypted with an Android Keystore key and saved outside backup locations. Use **Connection** to replace or remove it. Neither debug nor release APKs contain a Groq key; `.env` is ignored and its Groq property is excluded from BuildConfig. See [Groq connection and verification](docs/GROQ_ASSISTANT.md).
+
+Only typed chat messages, up to twelve recent conversation messages, the selected language and general app guidance are sent to Groq. Room records and photos are not automatically uploaded. Failed requests show a localized error and allow retry without duplicating the question. There is no silent offline answer fallback. Signing out or changing households clears the chat and cancels pending requests.
+
+The commissioner brief remains local and works offline. The previous `GeminiService(useNetwork = true)` path remains available in code but is not used by the chat screen. Login remains an on-device entry flow. Payment records do not process money, copied reminders are not sent automatically, and vehicle issues are added to the in-app queue rather than dispatched to an external emergency service.
 
 See [UI_CHANGES.md](UI_CHANGES.md) for current changes, verification results and remaining simulator checks. The original [showcase plan](CLEANCITY_SHOWCASE_PLAN.md) is retained as implementation history.
