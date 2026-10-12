@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.data.DemoScenario
+import com.example.data.AndhraPradeshLocations
 import com.example.data.HouseholdEntity
 import com.example.ui.Appearance
 import com.example.ui.UserRole
@@ -46,6 +47,11 @@ fun RoleHeaderBar(currentRole: UserRole, selectedLanguage: String, onRoleSelecte
     var query by remember { mutableStateOf("") }
     val s = appStrings()
     val largeText = LocalDensity.current.fontScale > 1.3f
+    val locationLabel = when (currentRole) {
+        UserRole.CITIZEN -> wardName ?: DemoScenario.ward
+        UserRole.DRIVER -> DemoScenario.ward
+        else -> AndhraPradeshLocations.region
+    }
     val roleControl: @Composable (Modifier) -> Unit = { modifier ->
         TextButton({ rolesOpen = true }, modifier.heightIn(min = 48.dp).testTag("role_switcher_button"), contentPadding = PaddingValues(4.dp)) {
             Text(if (currentRole == UserRole.MUNICIPAL_ADMIN) cityText("adminShort") else roleLabel(currentRole),
@@ -61,7 +67,7 @@ fun RoleHeaderBar(currentRole: UserRole, selectedLanguage: String, onRoleSelecte
                 }
                 Column(Modifier.weight(1f)) {
                     Text("CleanCity", style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Text((wardName ?: DemoScenario.ward).substringBefore(" -"), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                    Text(locationLabel.substringBefore(" -"), maxLines = 1, overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.labelSmall, color = CityColors.muted)
                 }
                 if (!largeText) roleControl(Modifier.widthIn(max = 116.dp))

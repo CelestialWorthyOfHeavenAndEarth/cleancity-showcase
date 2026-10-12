@@ -20,7 +20,7 @@ import java.io.File
 class ExpandedCityTest {
     private val context = ApplicationProvider.getApplicationContext<Context>()
 
-    @Test fun completeCastDatasetHasConnectedHistoryAcrossThreeWards() = runBlocking {
+    @Test fun completeCastDatasetHasConnectedHistoryAcrossFourCities() = runBlocking {
         val db = Room.inMemoryDatabaseBuilder(context, CleanCityDatabase::class.java).allowMainThreadQueries().build()
         try {
             db.initializeDemo()
@@ -28,7 +28,12 @@ class ExpandedCityTest {
             val homes = dao.householdsNow()
             assertEquals(24, homes.size)
             assertEquals(CityFixtures.cast.toSet(), homes.map { it.residentName }.toSet())
-            assertEquals(3, homes.map { it.ward }.distinct().size)
+            assertEquals(4, homes.map { it.ward }.distinct().size)
+            assertTrue(homes.all { it.address.endsWith("Andhra Pradesh") })
+            assertEquals("Benz Circle, Vijayawada, Andhra Pradesh", homes.first { it.residentName == "Mahesh Babu" }.address)
+            assertTrue(homes.first { it.residentName == "Prabhas" }.address.contains("Rajahmundry"))
+            assertTrue(homes.first { it.residentName == "Allu Arjun" }.address.contains("Guntur"))
+            assertTrue(homes.first { it.residentName == "Jr NTR" }.address.contains("Anantapur"))
             assertEquals(24, homes.map { it.qrCode }.distinct().size)
             assertEquals(350, dao.getAllPickupLogs().first().size)
             assertEquals(14, DemoScenario.today(dao.getAllPickupLogs().first()).size)
@@ -38,6 +43,14 @@ class ExpandedCityTest {
             assertEquals(18, dao.getAllWeighbridgeLogs().first().size)
             assertEquals(9, dao.getAllViolations().first().size)
             assertEquals(6, dao.getAllAnnouncements().first().size)
+            dao.getAllComplaints().first().forEach { report ->
+                val home = homes.first { it.id == report.householdId }
+                val location = AndhraPradeshLocations.forHousehold(home)!!
+                assertEquals(home.address, report.address)
+                assertEquals(home.ward, report.ward)
+                assertEquals(location.latitude, report.latitude, .004)
+                assertEquals(location.longitude, report.longitude, .004)
+            }
             homes.forEach { home ->
                 assertTrue(dao.getLogsForHousehold(home.id).first().size >= 14)
                 assertTrue(dao.getPaymentsForHousehold(home.id).first().size >= 5)

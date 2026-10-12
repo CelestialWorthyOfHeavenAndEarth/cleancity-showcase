@@ -4,13 +4,13 @@ A native Android app for household waste collection, reporting, sorting, payment
 
 ## Get started
 
-Choose **Get started** to open Mahesh Babu's household. Use the role control in the header to move between Citizen, Collector, Driver, Supervisor and Admin. Preferences lets you choose another household, change language or appearance, and sign out.
+Choose **Get started** to open Mahesh Babu's household in Vijayawada. Use the role control in the header to move between Citizen, Collector, Driver, Supervisor and Admin. Preferences lets you choose another household, change language or appearance, and sign out.
 
 The presentation dataset uses **fictional records with TFI actor names**. Names are used as a memorable cast; addresses, financial records, crew assignments and activities do not describe the real people or imply endorsement. Fine records use invented establishment names.
 
 ## Included data
 
-A fresh installation includes 24 households across three wards, 350 pickup records across 15 days, 128 payments across six months, 30 reports across four statuses, 12 crew members, 18 weighbridge entries, nine fines, six announcements and eight route stops. Existing installations receive the additional records once, preserving saved edits and transactions.
+A fresh installation includes 24 households across four Andhra Pradesh cities and wards (Vijayawada, Rajahmundry, Guntur and Anantapur), 350 pickup records across 15 days, 128 payments across six months, 30 reports across four statuses, 12 crew members, 18 weighbridge entries, nine fines, six announcements and eight Vijayawada route stops. Existing installations receive the additional records once, preserving saved edits and transactions. The [Andhra Pradesh content refresh](docs/ANDHRA_PRADESH.md) describes the household assignments and update rules.
 
 ## QR workflow
 
@@ -28,7 +28,7 @@ QR encoding and decoding use [ZXing](https://github.com/zxing/zxing); camera sca
 - **Citizen → Supervisor:** create a report with a photo and address. Filter the supervisor queue by status, add an inspection photo or note, and resolve it. Citizen history reflects the result.
 - **Citizen → Admin:** record a bill payment and view its receipt. The admin's outstanding balance and transaction list update. Recording changes the ledger; it does not transfer money.
 - **Driver → Supervisor:** complete route stops, enter a weighbridge slip, or report a vehicle issue. Progress is retained across role switches and the issue appears in the supervisor view.
-- **Admin:** compare three wards, review six months of payments, copy a payment reminder, create a fine and generate a commissioner brief from the same dashboard metrics.
+- **Admin:** compare four wards, review six months of payments, copy a payment reminder, create a fine and generate a commissioner brief from the same dashboard metrics.
 
 Search and status filters keep the larger lists manageable. Citizen drafts and navigation are saved separately for each selected household. Room records and appearance/language preferences persist; route completion and acknowledgments are held in the saved session.
 

@@ -40,7 +40,7 @@ fun SupervisorScreen(viewModel: CityModel, complaints: List<ComplaintEntity>, cr
             CityTransition(tab, Modifier.weight(1f), direction = { from, to -> to.compareTo(from) }) { activeTab ->
                 holder.SaveableStateProvider(activeTab) {
                     when(activeTab) {
-                        0 -> CityPage(s.roleSupervisor, DemoScenario.ward) {
+                        0 -> CityPage(s.roleSupervisor, AndhraPradeshLocations.region) {
                             item { AdaptiveColumns(primary = { RouteIllustration(crew.count { it.status == "ON_ROUTE" }, crew.size) }, secondary = {
                                 MetricPair(complaints.count { it.status != "RESOLVED" }.toString(), s.filterPending,
                                     crew.count { it.ppeChecked }.toString() + "/" + crew.size, cityText("safety"))

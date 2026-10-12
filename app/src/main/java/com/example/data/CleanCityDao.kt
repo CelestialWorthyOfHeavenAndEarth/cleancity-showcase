@@ -91,6 +91,9 @@ interface CleanCityDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPickupLog(log: PickupLogEntity): Long
 
+    @Update
+    suspend fun updatePickupLog(log: PickupLogEntity)
+
     // --- Complaints ---
     @Query("SELECT * FROM complaints ORDER BY createdAt DESC")
     fun getAllComplaints(): Flow<List<ComplaintEntity>>
@@ -130,6 +133,9 @@ interface CleanCityDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWeighbridgeLog(log: WeighbridgeLogEntity): Long
 
+    @Update
+    suspend fun updateWeighbridgeLog(log: WeighbridgeLogEntity)
+
     // --- Crew Attendance ---
     @Query("SELECT * FROM crew_attendance ORDER BY id ASC")
     fun getCrewAttendance(): Flow<List<CrewAttendanceEntity>>
@@ -146,6 +152,9 @@ interface CleanCityDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertViolation(violation: ViolationFineEntity): Long
+
+    @Update
+    suspend fun updateViolation(violation: ViolationFineEntity)
 
     // --- Announcements ---
     @Query("SELECT * FROM announcements ORDER BY id DESC")

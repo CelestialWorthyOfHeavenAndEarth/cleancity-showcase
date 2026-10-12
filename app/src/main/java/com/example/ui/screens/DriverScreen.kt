@@ -33,7 +33,7 @@ fun DriverScreen(viewModel: CityModel, weighbridgeLogs: List<WeighbridgeLogEntit
     var gross by rememberSaveable { mutableStateOf("") }
     var tare by rememberSaveable { mutableStateOf("") }
     var vehicle by rememberSaveable { mutableStateOf(DemoScenario.vehicle) }
-    var plant by rememberSaveable { mutableStateOf("City recovery centre") }
+    var plant by rememberSaveable { mutableStateOf("Vijayawada recovery centre") }
     var waste by rememberSaveable { mutableIntStateOf(0) }
     var attempted by rememberSaveable { mutableStateOf(false) }
     val locations = CityFixtures.routeStops

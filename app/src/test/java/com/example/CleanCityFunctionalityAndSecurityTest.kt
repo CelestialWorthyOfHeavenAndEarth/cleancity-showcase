@@ -222,13 +222,13 @@ class CleanCityFunctionalityAndSecurityTest {
     }
 
     @Test
-    fun testDemoHouseholdMaheshBabuInJubileeHills() = runBlocking {
+    fun testDemoHouseholdMaheshBabuInVijayawada() = runBlocking {
         CleanCityDatabase.ensureDemoHousehold(dao)
         val demo = dao.getHouseholdByQrCode("BIN-JH-101")
         assertNotNull(demo)
         assertEquals("Mahesh Babu", demo?.residentName)
-        assertEquals("Jubilee Hills, Hyderabad, India", demo?.address)
-        assertEquals("Ward 104 - Jubilee Hills, Hyderabad", demo?.ward)
+        assertEquals("Benz Circle, Vijayawada, Andhra Pradesh", demo?.address)
+        assertEquals("Vijayawada · Ward 12", demo?.ward)
         assertEquals("English", demo?.preferredLanguage)
     }
 }

@@ -1,6 +1,6 @@
 # Welcome background video
 
-Updated 11 October 2026. The user's Google AI Studio commit `7e4a131` remains incorporated.
+Updated 12 October 2026. The user's Google AI Studio commit `7e4a131` remains incorporated.
 
 ## Source and bundled assets
 
@@ -18,7 +18,7 @@ Bundled video SHA-256: `007c03cbccfe45146c0ea28327a527689ab1ce36c3b9bd7202bd92bd
 
 ## Presentation and lifecycle
 
-The welcome illustration is replaced by full-size footage behind a theme-aware gradient. Video visibility peaks at 65% in the middle, increased from 42%. The canvas overlay is also lighter behind the heading and controls: its five gradient stops now use 84%, 76%, 35%, 62% and 84% opacity, from top to bottom. Text and the primary button remain opaque. Dark appearance uses the same footage under the dark canvas color.
+The welcome illustration is replaced by full-size footage behind a theme-aware gradient. Video visibility remains at 65% in the middle. The canvas overlay is slightly stronger behind the heading and controls: its five gradient stops use 89%, 82%, 35%, 68% and 90% opacity, from top to bottom. Text and the primary button remain opaque. Dark appearance uses the same footage under the dark canvas color.
 
 - The clip is bundled and requires no network request or media permission.
 - Android `MediaPlayer` and `TextureView` handle local playback; no Android library was added.

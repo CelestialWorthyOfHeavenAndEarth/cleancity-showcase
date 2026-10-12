@@ -1,6 +1,6 @@
 # CleanCity — Welcome video, motion and connected city workflows
 
-Updated 11 October 2026. The latest revision increases welcome-video visibility and softens the overlay behind the heading and controls. The user's Google AI Studio update, connected workflows and full-name Home greeting remain incorporated.
+Updated 12 October 2026. The latest revision keeps welcome-video visibility at 65%, adds a little more white behind the heading and controls, and moves the TFI presentation households to four Andhra Pradesh cities. The user's Google AI Studio update, connected workflows and full-name Home greeting remain incorporated.
 
 ## Interface changes
 
@@ -26,7 +26,7 @@ Android semantic haptics accompany deliberate selections, QR matches and success
 
 Pulled commit `7e4a131` without conflicts. Its QR-in-hero layout, deep emerald color, scrolling chip rows, crew cards and launcher changes are retained.
 
-The supplied `Video-25080.mp4` is now a bundled, silent welcome background behind a theme-aware gradient. The middle now reveals 65% of the footage, up from 42%, with less canvas coverage behind the heading and controls. Text and the primary button remain opaque. The derived 720 × 1280 H.264 clip runs for 8.58 seconds and uses a 0.75-second blend at the loop boundary. It is 2.2 MB, with a matching still image. The original file remains unchanged locally.
+The supplied `Video-25080.mp4` is now a bundled, silent welcome background behind a theme-aware gradient. The middle still reveals 65% of the footage. Coverage behind the heading and controls is slightly increased for readability, using gradient opacities of 89%, 82%, 35%, 68% and 90% from top to bottom. Text and the primary button remain opaque. The derived 720 × 1280 H.264 clip runs for 8.58 seconds and uses a 0.75-second blend at the loop boundary. It is 2.2 MB, with a matching still image. The original file remains unchanged locally.
 
 A pause/play control sits above Get started. Reduced motion, previews, loading and decoding errors use the still image. The native player releases immediately when the activity pauses, and also releases when the user opens forms, changes language through the sheet, enters the app or leaves the welcome screen. Late preparation callbacks cannot restart a disposed player. The clip needs no network service and entry does not wait for video preparation. Playback and pause labels are localized in all nine languages. Asset provenance and implementation details are in [docs/WELCOME_VIDEO.md](docs/WELCOME_VIDEO.md).
 
@@ -34,7 +34,7 @@ A pause/play control sits above Get started. Reduced motion, previews, loading a
 
 | Records on a fresh installation | Count / coverage |
 | --- | --- |
-| TFI household cast | 24 households, three wards |
+| TFI household cast | 24 households, four cities and wards in Andhra Pradesh |
 | Pickup history | 350 records across 15 days |
 | Payments | 128 records across six months |
 | Reports | 30, including Open, In progress, Escalated and Resolved |
@@ -46,7 +46,9 @@ A pause/play control sits above Get started. Reduced motion, previews, loading a
 
 `CityFixtures` is the shared source for the installed database and preview data. Actor names are fictional presentation characters here; records and locations do not make claims about those real people. Fine records use invented business names. Dates are relative to initialization. The main household has fourteen consecutive successful historical pickups and remains ready for a collection today.
 
-Room version 4 adds a seed marker and a non-destructive migration from version 3. The earlier version 2 migration remains supported. Existing scores, addresses, fees, payments and collection results are preserved. Recognized built-in names are updated, missing presentation records are added once, and subsequent launches do not repeat enrichment. Old generated receipt labels are normalized without changing payment amounts.
+Room version 4 adds a seed marker and a non-destructive migration from version 3. The earlier version 2 migration remains supported. Existing scores, custom addresses, fees, payments and collection results are preserved. Recognized built-in names are updated, missing presentation records are added once, and subsequent launches do not repeat enrichment. Old generated receipt labels are normalized without changing payment amounts.
+
+Mahesh Babu is assigned to Vijayawada, Prabhas to Rajahmundry, Allu Arjun to Guntur and Jr NTR to Anantapur, with six households per city. Shared location data drives addresses, ward labels and fixture report coordinates. The driver's route stays in Vijayawada, and fleet/facility labels use Andhra Pradesh locations. A transactional content refresh updates matching built-in locations on existing installations once, preserving saved activity and custom locations. QR identifiers remain stable; the printable tag sheet carries the revised wards. See [Andhra Pradesh update and suggested next improvements](docs/ANDHRA_PRADESH.md).
 
 ## Working QR features
 
@@ -68,9 +70,9 @@ The existing nine languages, light/dark/system preferences, transactional paymen
 
 ## Verification
 
-The debug APK builds successfully. All 41 local tests passed for the video integration before the middle-opacity adjustment, covering household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, offline responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected. Four motion interaction tests verify the full-name Home and shortcuts, predictive Back cancellation/completion with preserved state, success-only haptic dispatch, and immediate rendering when system animations are disabled. Five video tests cover muted looping, immediate lifecycle release, late callbacks after disposal, decoder-error fallback, motion/overlay gating, manual pause/play and immediate entry.
+The debug APK builds successfully. All 43 local tests pass, covering household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, offline responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected. Four motion interaction tests verify the full-name Home and shortcuts, predictive Back cancellation/completion with preserved state, success-only haptic dispatch, and immediate rendering when system animations are disabled. Five video tests cover muted looping, immediate lifecycle release, late callbacks after disposal, decoder-error fallback, motion/overlay gating, manual pause/play and immediate entry.
 
-For the 11 October overlay adjustment to 65% video visibility, the APK was rebuilt and the two existing `majorScreensRenderInBothThemes` and `largeTextOperationalScreensRender` tests passed, refreshing 27 captures. The welcome captures in light, dark and enlarged text were visually inspected. No playback behavior changed; the full 41-test suite was not repeated for this styling-only change.
+Two new location-refresh tests cover existing version 4 records with shifted database IDs, preservation of payments/scores/QR identity/history/proof/attendance/weights/fines, custom-address and custom-ward exclusions, independently entered reports, and repeat initialization. The fresh-dataset check verifies the four city assignments and report coordinates. The full suite, APK build and all 39 host captures were refreshed for this update.
 
 The full-suite verification command uses the installed JDK 22 and Android SDK 36.1:
 
@@ -78,19 +80,13 @@ The full-suite verification command uses the installed JDK 22 and Android SDK 36
 .\gradlew.bat --offline :app:testDebugUnitTest :app:assembleDebug --console=plain
 ```
 
-The focused command for the latest overlay adjustment was:
-
-```powershell
-.\gradlew.bat --offline :app:testDebugUnitTest --tests 'com.example.ShowcaseRenderTest.majorScreensRenderInBothThemes' --tests 'com.example.ShowcaseRenderTest.largeTextOperationalScreensRender' :app:assembleDebug --console=plain
-```
-
-Thirty-nine host-rendered Compose images cover light/dark phone screens, enlarged text, wide layouts, QR cards, supervisor reports/crew, admin wards/finance/transactions, and the new report/collection detail pages. Representative renders were visually inspected, including welcome, Home in both themes, large-text Home, wide Home and both detail forms. Static screenshots use the reduced-motion path because a software bitmap canvas cannot draw shared-transition RenderNodes; welcome captures therefore show the actual poster and gradient. Separate interaction tests exercise motion, Back behavior and the video lifecycle using a shadow player. Every frame of the bundled video was decoded with FFmpeg, and the video embedded in the APK matches the prepared asset byte for byte.
+Thirty-nine host-rendered Compose images cover light/dark phone screens, enlarged text, wide layouts, QR cards, supervisor reports/crew, admin wards/finance/transactions, and the new report/collection detail pages. The latest visual review covered welcome in both themes, Home, enlarged-text Home and admin ward comparisons. Static screenshots use the reduced-motion path because a software bitmap canvas cannot draw shared-transition RenderNodes; welcome captures therefore show the actual poster and gradient. Separate interaction tests exercise motion, Back behavior and the video lifecycle using a shadow player. Every frame of the bundled video was decoded with FFmpeg during the video integration, and the video embedded in that APK matched the prepared asset byte for byte. The current handoff APK was checked against the build output and its DEX contains the new location refresh and Andhra Pradesh city strings.
 
 These are Robolectric host renders, not screenshots from an installed APK or emulator. Scanner entry, invalid/valid household-ID lookup, the collection form and weight validation are checked through Compose interactions. Dialog-window appearance, physical haptic strength, gesture feel, hardware video playback, loop continuity and animation frame pacing remain device checks.
 
 The existing tooling can emit a non-fatal KSP shutdown exception. Lint was previously blocked by uncached instrumentation-test dependencies and is separate from these build/unit/render checks.
 
-The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), copied from the final successful debug build. SHA-256: `FA59FC5A3F6C37B9662EF42B6F1D09AADD6174CD795E75B8AF02E8E522F380BF`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
+The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), copied from the final successful debug build. SHA-256: `868FCD092AFD9F68FD344142C0054AA111F01518D68347FF2C7C4EAEB2E18099`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
 
 ## Simulator/device checklist
 

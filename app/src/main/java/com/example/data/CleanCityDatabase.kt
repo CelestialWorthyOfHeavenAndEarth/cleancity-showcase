@@ -18,6 +18,10 @@ abstract class CleanCityDatabase : RoomDatabase() {
     suspend fun initializeDemo() = withTransaction {
         val dao = cleanCityDao()
         ensureDemoHousehold(dao)
+        if (dao.seedApplied(AndhraPradeshRefresh.key) == 0) {
+            AndhraPradeshRefresh.apply(dao)
+            dao.markSeedApplied(SeedMarkerEntity(AndhraPradeshRefresh.key))
+        }
         if (dao.seedApplied("tfi-neighborhood-v1") == 0) {
             populateInitialData(dao)
             dao.markSeedApplied(SeedMarkerEntity("tfi-neighborhood-v1"))

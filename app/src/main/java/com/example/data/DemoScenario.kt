@@ -5,11 +5,11 @@ import java.util.Calendar
 import java.util.Locale
 
 object DemoScenario {
-    const val ward = "Ward 104 - Jubilee Hills, Hyderabad"
-    const val address = "Jubilee Hills, Hyderabad, India"
-    const val vehicle = "TS-09-EA-2041"
-    const val latitude = 17.4326
-    const val longitude = 78.4071
+    val ward = AndhraPradeshLocations.cities.first().ward
+    val address = AndhraPradeshLocations.cities.first().address
+    const val vehicle = "AP-39-EA-2041"
+    val latitude = AndhraPradeshLocations.cities.first().latitude
+    val longitude = AndhraPradeshLocations.cities.first().longitude
     const val otp = "482910"
     val languages = listOf("English", "Telugu", "Hindi", "Kannada", "Tamil", "Malayalam", "Marathi", "Bengali", "Gujarati")
     fun household() = HouseholdEntity(
