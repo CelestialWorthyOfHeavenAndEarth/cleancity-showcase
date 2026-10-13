@@ -4,16 +4,23 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.AtomicFile
+import com.example.BuildConfig
 import java.io.File
+import java.io.FileNotFoundException
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
-/** Encrypted on-device credential; the ciphertext lives outside Android backup locations. */
-class GroqCredentials(context: Context, private val keyProvider: () -> SecretKey = ::deviceKey) {
+/** Device overrides are encrypted; a personal debug build can supply a bundled default. */
+class GroqCredentials(
+    context: Context,
+    private val bundledKey: String = BuildConfig.GROQ_API_KEY,
+    private val keyProvider: () -> SecretKey = ::deviceKey
+) {
     private val file = AtomicFile(File(context.noBackupFilesDir, "groq_credentials"))
+    private val bundledKeyDisabled = File(context.noBackupFilesDir, "groq_bundled_key_disabled")
 
     fun read(): String = try {
         val bytes = file.readFully()
@@ -22,6 +29,8 @@ class GroqCredentials(context: Context, private val keyProvider: () -> SecretKey
         val cipher = Cipher.getInstance("AES/GCM/NoPadding")
         cipher.init(Cipher.DECRYPT_MODE, keyProvider(), GCMParameterSpec(128, bytes.copyOfRange(1, ivSize + 1)))
         String(cipher.doFinal(bytes.copyOfRange(ivSize + 1, bytes.size)), Charsets.UTF_8)
+    } catch (_: FileNotFoundException) {
+        if (bundledKeyDisabled.exists()) "" else bundledKey.trim()
     } catch (_: Exception) { "" }
 
     fun save(value: String) {
@@ -35,7 +44,11 @@ class GroqCredentials(context: Context, private val keyProvider: () -> SecretKey
             file.finishWrite(output)
         } catch (e: Exception) { file.failWrite(output); throw e }
     }
-    fun clear() { file.delete() }
+    fun clear() {
+        // Remember removal across restarts instead of silently reactivating the bundled key.
+        bundledKeyDisabled.writeText("disabled")
+        file.delete()
+    }
 
     companion object {
         fun valid(value: String) = value.trim().matches(Regex("gsk_[A-Za-z0-9_-]{20,200}"))

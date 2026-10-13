@@ -1,6 +1,6 @@
 # CleanCity — Welcome video, motion and connected city workflows
 
-Updated 12 October 2026. The latest revision connects the assistant to Groq online with encrypted device-only key setup. The user's latest AI Studio changes (`52a5837`), Andhra Pradesh locations, welcome-video visibility and connected workflows remain incorporated.
+Updated 13 October 2026. The personal debug APK now bundles the owner's local Groq key, as explicitly requested, so the assistant opens ready to chat. Device key replacement/removal remains available. The user's latest AI Studio changes (`52a5837`), Andhra Pradesh locations, welcome-video visibility and connected workflows remain incorporated.
 
 ## Interface changes
 
@@ -64,7 +64,7 @@ The QR tests verify every cast household by encoding and decoding its tag. No ex
 
 ## Other completed interactions
 
-The assistant now uses Groq online. Its connection sheet accepts a masked API key and stores it encrypted outside Android backups; no Groq key is bundled in either debug or release builds. Typed messages and bounded conversation history are sent to Groq, with a visible explanation in the chat screen. Retry, cancellation and distinct localized connection/key/rate-limit errors replace the old automatic local-answer fallback. Sign-out and household changes clear the conversation. The commissioner brief remains local. See [Groq setup and verification](docs/GROQ_ASSISTANT.md).
+The assistant uses Groq online. Personal debug builds embed the key from the ignored local `.env`; release builds leave the credential blank. Git contains neither the key value nor the APK. Chat opens without setup when a bundled key is available. Its connection sheet still accepts a masked replacement and stores it encrypted outside Android backups. Removing the key also disables the bundled default across restarts. Typed messages and bounded conversation history are sent to Groq, with a visible explanation in the chat screen. Retry, cancellation and distinct localized connection/key/rate-limit errors replace the old automatic local-answer fallback. Sign-out and household changes clear the conversation. The commissioner brief remains local. See [Groq setup and verification](docs/GROQ_ASSISTANT.md).
 
 Supervisor resolution accepts an entered inspection note or a selected image; there is no fabricated proof button. Resolution history displays the stored note or image. Receipt titles and references describe saved payment records. The admin reminder action copies the visible text to the clipboard. The fuller collection and payment histories remain scoped to the selected citizen while staff views cover the operational dataset.
 
@@ -72,9 +72,9 @@ The existing nine languages, light/dark/system preferences, transactional paymen
 
 ## Verification
 
-The debug APK builds successfully. The suite reports 54 tests: 53 passed and one optional live-network test skipped, with no failures or errors. Existing checks cover household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, legacy local responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected. Four motion interaction tests verify the full-name Home and shortcuts, predictive Back cancellation/completion with preserved state, success-only haptic dispatch, and immediate rendering when system animations are disabled. Five video tests cover muted looping, immediate lifecycle release, late callbacks after disposal, decoder-error fallback, motion/overlay gating, manual pause/play and immediate entry.
+The debug APK builds successfully. The suite reports 58 tests: 57 passed and one optional live-network test skipped, with no failures or errors. Existing checks cover household isolation, transactional payment and collection behavior, input validation, report resolution, version 2 and version 3 database upgrades, preservation of saved edits, one-time data enrichment, legacy local responses and real QR encoding/decoding. Every one of the 24 household QR tags round-trips to its own identifier; malformed IDs and non-QR images are rejected. Four motion interaction tests verify the full-name Home and shortcuts, predictive Back cancellation/completion with preserved state, success-only haptic dispatch, and immediate rendering when system animations are disabled. Five video tests cover muted looping, immediate lifecycle release, late callbacks after disposal, decoder-error fallback, motion/overlay gating, manual pause/play and immediate entry.
 
-Ten new offline tests cover the Groq request/response contract, typed errors, missing credentials, cancellation, retry without duplicate questions, clearing conversations, localized connection copy, encrypted credential storage/corruption/removal, and connection-sheet validation. A separate direct request to Groq successfully received a live reply. Both generated BuildConfig variants and every decompressed APK entry were checked to confirm the provided Groq key is absent. The actual Android Keystore implementation and installed-device HTTP behavior remain device checks.
+Fourteen offline tests cover the Groq request/response contract, typed errors, missing credentials, cancellation, retry without duplicate questions, clearing conversations, localized connection copy, encrypted credential storage/corruption/removal, connection-sheet validation, immediate chat without setup, the bundled default, device override precedence and persistent removal. A separate direct request to Groq successfully received a live reply on 12 October; this revision did not repeat that network call. Generated BuildConfig variants confirm the local key is present only in debug, and inspection confirms it is embedded in the debug APK's compiled code as requested. Files eligible for Git contain none of the provided key. The actual Android Keystore implementation and installed-device HTTP behavior remain device checks.
 
 Two new location-refresh tests cover existing version 4 records with shifted database IDs, preservation of payments/scores/QR identity/history/proof/attendance/weights/fines, custom-address and custom-ward exclusions, independently entered reports, and repeat initialization. The fresh-dataset check verifies the four city assignments and report coordinates. The full suite, APK build and all 39 host captures were refreshed for this update.
 
@@ -90,7 +90,7 @@ These are Robolectric host renders, not screenshots from an installed APK or emu
 
 The existing tooling can emit a non-fatal KSP shutdown exception. Lint was previously blocked by uncached instrumentation-test dependencies and is separate from these build/unit/render checks.
 
-The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), copied from the final successful debug build. SHA-256: `BD03961922B41AD69AB0604C8265611DA107A06239EB7F221197E7E85850AB35`. The APK is excluded from Git; source, documentation and the printable QR assets are committed.
+The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), copied from the final successful debug build. SHA-256: `0427D19EFDE52C21B782134261D3036F4CD3E06DEEB7E004E4803E53827610F0`. The personal APK contains the Groq key and is excluded from Git; source, documentation and the printable QR assets are committed.
 
 ## Simulator/device checklist
 
@@ -101,6 +101,6 @@ The local handoff package is `CleanCity-Showcase-debug.apk` (27,900,492 bytes), 
 5. Open report and collection details, swipe Back partway and cancel, then complete Back. Verify drafts, scroll position, touch feedback and reduced-motion settings.
 6. On welcome, check video playback, pause/play, reduced motion, light/dark appearance, form opening, background/resume and entry. Confirm that no audio plays.
 7. Upgrade an existing installation and confirm saved work remains intact.
-8. Connect the assistant with a Groq key, verify persistence after restart, try airplane mode and retry, replace/remove the key, and confirm household switching and sign-out cancel pending replies.
+8. Open Assistant and send a question immediately, try airplane mode and retry, replace/remove the key and restart to verify that removal stays effective, and confirm household switching and sign-out cancel pending replies.
 
 No emulator or Google AI Studio environment was set up. Network account authentication, payment processing, SMS transport and external incident dispatch remain outside this app's current on-device workflows. Groq key access and a live reply were verified from the local host; installed-device networking and Android Keystore still require a device check. The optional Gemini network path is retained but was not verified.

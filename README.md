@@ -54,7 +54,7 @@ Debug builds use a project-root `debug.keystore` when supplied; otherwise they u
 
 ## Integration boundaries
 
-The assistant uses Groq online with `openai/gpt-oss-120b`. Open **Assistant → Connect assistant**, paste your own Groq API key, and choose **Save key**. The key is encrypted with an Android Keystore key and saved outside backup locations. Use **Connection** to replace or remove it. Neither debug nor release APKs contain a Groq key; `.env` is ignored and its Groq property is excluded from BuildConfig. See [Groq connection and verification](docs/GROQ_ASSISTANT.md).
+The assistant uses Groq online with `openai/gpt-oss-120b`. Personal debug builds embed `GROQ_API_KEY` from the ignored local `.env`, at the owner's request, so chat works without connection setup. Release builds leave the key blank; neither the key value nor APK is committed to Git. Without a bundled key, open **Assistant → Connect assistant**, paste a Groq key, and choose **Save key**. Use **Connection** to replace or remove the active key. Device replacements are encrypted with Android Keystore and stored outside backups; removal also disables the bundled default across restarts. See [Groq connection and verification](docs/GROQ_ASSISTANT.md).
 
 Only typed chat messages, up to twelve recent conversation messages, the selected language and general app guidance are sent to Groq. Room records and photos are not automatically uploaded. Failed requests show a localized error and allow retry without duplicating the question. There is no silent offline answer fallback. Signing out or changing households clears the chat and cancels pending requests.
 

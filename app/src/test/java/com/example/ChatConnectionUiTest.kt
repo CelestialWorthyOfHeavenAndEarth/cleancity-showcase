@@ -36,4 +36,18 @@ class ChatConnectionUiTest {
         compose.onNodeWithText("Save key").performScrollTo().assertIsEnabled().performClick()
         assertEquals(key, saved)
     }
+
+    @Test fun configuredAssistantCanSendImmediatelyWithoutOpeningConnectionSetup() {
+        var sent = ""
+        val model = object : CityModel by PreviewCityModel() {
+            override val chatConfigured = MutableStateFlow(true)
+            override fun sendChatMessage(userText: String) { sent = userText }
+        }
+        compose.setContent { CleanCityTheme { AiChatbotScreen(model) } }
+        compose.onNodeWithText("Online · Groq").assertExists()
+        compose.onNodeWithText("Connect assistant").assertDoesNotExist()
+        compose.onNode(hasSetTextAction()).performTextInput("Where does paper go?")
+        compose.onNodeWithContentDescription("Send").assertIsEnabled().performClick()
+        assertEquals("Where does paper go?", sent)
+    }
 }

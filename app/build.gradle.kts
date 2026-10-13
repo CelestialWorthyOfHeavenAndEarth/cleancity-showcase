@@ -1,4 +1,5 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.util.Properties
 
 plugins {
   alias(libs.plugins.android.application)
@@ -40,12 +41,23 @@ android {
 
   buildTypes {
     release {
+      buildConfigField("String", "GROQ_API_KEY", "\"\"")
       isCrunchPngs = false
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
     debug {
+      // Personal debug builds may bundle a local key; release builds and Git never receive it.
+      val localSecrets = Properties().apply {
+        val envFile = rootProject.file(".env")
+        if (envFile.isFile) envFile.reader().use { load(it) }
+      }
+      val groqKey = localSecrets.getProperty("GROQ_API_KEY", "").trim().trim('"', '\'')
+      require(groqKey.isEmpty() || groqKey.matches(Regex("gsk_[A-Za-z0-9_-]{20,200}"))) {
+        "GROQ_API_KEY in the local .env has an invalid format."
+      }
+      buildConfigField("String", "GROQ_API_KEY", "\"$groqKey\"")
       // Use a supplied project key when present; keep fresh local checkouts buildable.
       if (file("${rootDir}/debug.keystore").isFile) {
         signingConfig = signingConfigs.getByName("debugConfig")
